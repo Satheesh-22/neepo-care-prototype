@@ -1,0 +1,19 @@
+{
+  "eventId": "10000000-0000-4000-9000-000000000001",
+  "tripId": "00000000-0000-4000-8600-000000000001",
+  "vehicleId": "00000000-0000-4000-8300-000000000001",
+  "recordedAt": "2026-08-13T10:20:00Z",
+  "receivedAt": "2026-08-13T10:20:02Z",
+  "expiresAt": "2026-08-13T10:21:00Z",
+  "location": {
+    "latitude": 11.341,
+    "longitude": 77.7172
+  },
+  "engineTemperatureCelsius": 92.5,
+  "cargoTemperatureCelsius": 5.1,
+  "speedKph": 42,
+  "confidence": 0.96,
+  "observationStatus": "FRESH",
+  "source": "SIMULATOR",
+  "networkState": "ONLINE"
+}

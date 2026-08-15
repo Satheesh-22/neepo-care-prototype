@@ -1,0 +1,119 @@
+version: 1.0.0
+
+codes:
+  VEHICLE_TYPE_UNSUPPORTED:
+    severity: ERROR
+    category: VEHICLE
+    message: The provider or substitute vehicle does not support the required vehicle type.
+  ROAD_HEIGHT_LIMIT_EXCEEDED:
+    severity: ERROR
+    category: ROUTE
+    message: The vehicle exceeds a road or facility height restriction.
+  ROAD_WIDTH_LIMIT_EXCEEDED:
+    severity: ERROR
+    category: ROUTE
+    message: The vehicle exceeds a road or facility width restriction.
+  ROAD_WEIGHT_LIMIT_EXCEEDED:
+    severity: ERROR
+    category: ROUTE
+    message: The vehicle exceeds a road or facility weight restriction.
+  CARGO_REQUIREMENT_UNSUPPORTED:
+    severity: ERROR
+    category: CARGO
+    message: The plan cannot maintain a required cargo safety condition.
+  CARGO_TEMPERATURE_AT_RISK:
+    severity: ERROR
+    category: CARGO
+    message: Predicted cargo temperature will leave the permitted range.
+  PROVIDER_CAPABILITY_MISSING:
+    severity: ERROR
+    category: PROVIDER
+    message: The provider lacks a required capability.
+  PROVIDER_AVAILABILITY_EXPIRED:
+    severity: ERROR
+    category: FRESHNESS
+    message: Provider availability is too old to be treated as confirmed.
+  PROVIDER_UNAVAILABLE:
+    severity: ERROR
+    category: PROVIDER
+    message: The provider is not available for this recovery.
+  REQUIRED_EQUIPMENT_UNAVAILABLE:
+    severity: ERROR
+    category: RESOURCE
+    message: Required equipment is unavailable.
+  REQUIRED_PART_UNAVAILABLE:
+    severity: ERROR
+    category: RESOURCE
+    message: A required spare part is unavailable.
+  DRIVER_HOURS_INSUFFICIENT:
+    severity: ERROR
+    category: DRIVER
+    message: Remaining legal driving time is insufficient.
+  STOP_LOCATION_UNSAFE:
+    severity: ERROR
+    category: SAFETY
+    message: The proposed stop location is not confirmed safe.
+  WAITING_TIME_EXCEEDED:
+    severity: ERROR
+    category: TIME
+    message: Estimated waiting time exceeds the configured maximum.
+  DELIVERY_DEADLINE_EXCEEDED:
+    severity: ERROR
+    category: TIME
+    message: The plan cannot meet the hard delivery deadline.
+  ROUTE_BLOCKED:
+    severity: ERROR
+    category: ROUTE
+    message: A required route segment is blocked.
+  CONTEXT_OBSERVATION_EXPIRED:
+    severity: ERROR
+    category: FRESHNESS
+    message: A required context observation has expired.
+  LOW_CONTEXT_CONFIDENCE:
+    severity: WARNING
+    category: UNCERTAINTY
+    message: One or more observations have low confidence.
+  ROUTE_DETOUR_HIGH:
+    severity: WARNING
+    category: ROUTE
+    message: The plan requires a high detour.
+  PROVIDER_ETA_HIGH:
+    severity: WARNING
+    category: PROVIDER
+    message: Provider arrival time is high but remains within the configured limit.
+  PLAN_SELECTED_HIGHEST_UTILITY:
+    severity: INFO
+    category: DECISION
+    message: The plan has the highest deterministic utility among feasible plans.
+  PLAN_SELECTED_TIE_BREAK:
+    severity: INFO
+    category: DECISION
+    message: Stable plan identifier ordering resolved an equal-utility tie.
+  PROVIDER_CANCELLED:
+    severity: ERROR
+    category: INVALIDATION
+    message: The selected provider cancelled.
+  PLAN_ETA_THRESHOLD_EXCEEDED:
+    severity: ERROR
+    category: INVALIDATION
+    message: The accepted plan ETA exceeded its threshold.
+  VEHICLE_CONDITION_WORSENED:
+    severity: ERROR
+    category: INVALIDATION
+    message: Vehicle condition worsened after plan selection.
+  REQUIRED_RESOURCE_UNAVAILABLE:
+    severity: ERROR
+    category: INVALIDATION
+    message: A resource required by the plan became unavailable.
+  HIGHER_SEVERITY_DISRUPTION_DETECTED:
+    severity: ERROR
+    category: INVALIDATION
+    message: A higher-severity disruption superseded the current plan.
+  NO_FEASIBLE_RECOVERY_PLAN:
+    severity: CRITICAL
+    category: DECISION
+    message: No generated recovery plan satisfies all hard constraints.
+  EMERGENCY_ESCALATION_SELECTED:
+    severity: CRITICAL
+    category: DECISION
+    message: Emergency escalation was selected because no normal plan is safe.

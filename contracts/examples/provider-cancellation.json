@@ -1,0 +1,6 @@
+{
+  "eventId": "10000000-0000-4000-9000-000000000003",
+  "explanationCode": "PROVIDER_CANCELLED",
+  "observedAt": "2026-08-13T10:40:00Z",
+  "details": "Workshop B cancelled after accepting the recovery request."
+}

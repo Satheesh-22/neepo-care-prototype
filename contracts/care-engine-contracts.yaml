@@ -1,0 +1,58 @@
+version: 1.0.0
+
+TripContext:
+  required:
+    - trip
+    - vehicle
+    - driver
+    - cargo
+    - route
+    - providers
+    - safeStops
+    - telemetryObservations
+    - networkState
+    - activeDisruptions
+    - evaluationTime
+    - contextHash
+  optional:
+    - currentRecoveryPlan
+  rules:
+    - Every observed fact includes observation, receipt and expiration timestamps.
+    - Confidence is between 0 and 1.
+    - Missing or expired required data is not replaced with an assumed value.
+    - evaluationTime is supplied by the caller for deterministic tests.
+    - contextHash is SHA-256 of the canonicalized decision input.
+
+PlanEvaluation:
+  required:
+    - planId
+    - feasible
+    - violatedHardConstraints
+    - warnings
+    - softConstraintResults
+    - riskScore
+    - uncertaintyScore
+    - benefitScore
+    - lambdaCoefficient
+    - muCoefficient
+    - finalUtility
+    - confidence
+    - freshnessSummary
+    - explanationCodes
+    - evaluatedAt
+    - evaluatorVersion
+    - inputHash
+  invariants:
+    - feasible implies violatedHardConstraints is empty.
+    - finalUtility equals benefitScore minus lambdaCoefficient times riskScore minus muCoefficient times uncertaintyScore.
+    - Identical inputHash, evaluatorVersion and configuration produce identical output.
+
+Selection:
+  primaryOrder: finalUtility descending
+  tieBreak: canonical plan UUID string ascending
+  emergencyFallback: EMERGENCY_ESCALATION
+
+Idempotency:
+  key: eventId
+  conflictRule: Reusing an eventId with a different payload hash is a conflict.
+  duplicateRule: Reusing an eventId with the same payload returns the original result.
