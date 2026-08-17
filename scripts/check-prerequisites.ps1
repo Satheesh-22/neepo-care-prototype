@@ -41,14 +41,20 @@ if (Get-Command git -ErrorAction SilentlyContinue) {
 }
 
 if (Get-Command java -ErrorAction SilentlyContinue) {
-    $javaVersion = (& cmd.exe /d /c "java -version 2>&1" | Select-Object -First 1).ToString()
-    Write-Host $javaVersion
-    if ($javaVersion -notmatch '"21') {
+    $javaOutput = & cmd.exe /d /c "java -version 2>&1"
+
+    $javaVersion = $javaOutput |
+        Where-Object { $_ -match '(java|openjdk) version "21(\.|")' } |
+        Select-Object -First 1
+
+    if ($javaVersion) {
+        Write-Host $javaVersion
+    }
+    else {
         Write-Host "ERROR: Java 21 is required." -ForegroundColor Red
         $failures++
     }
 }
-
 if (Get-Command node -ErrorAction SilentlyContinue) {
     $nodeMajor = [int]((& node --version).TrimStart('v').Split('.')[0])
     if ($nodeMajor -lt 22) {
