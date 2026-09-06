@@ -1,0 +1,10 @@
+package com.neepo.contracts;
+
+public enum RecoveryPlanType {
+WORKSHOP_REPAIR,
+    SAFE_PARKING_MOBILE_MECHANIC,
+    TOW_REPAIR_OR_TRANSFER,
+    SUBSTITUTE_VEHICLE_TRANSFER,
+    DRIVER_REST,
+    EMERGENCY_ESCALATION
+}

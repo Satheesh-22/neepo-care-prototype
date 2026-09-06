@@ -1,0 +1,1727 @@
+openapi: 3.1.0
+info:
+  title: NEEPO-CARE API
+  version: 1.0.0
+  description: >-
+    Frozen cross-module contract for the NEEPO-CARE prototype. Operations marked
+    with x-implementation-status: planned are contracts for later milestones.
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+security: []
+x-future-default-security: bearerAuth
+
+tags:
+  - name: Authentication
+  - name: Users
+  - name: Fleet
+  - name: Cargo
+  - name: Providers
+  - name: Trips
+  - name: Telemetry
+  - name: Disruptions
+  - name: Recovery
+  - name: Decisions
+  - name: Metrics
+
+paths:
+  /auth/login:
+    post:
+      tags: [Authentication]
+      security: []
+      operationId: login
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /events/ticket:
+    post:
+      tags: [Authentication]
+      operationId: issueWebSocketTicket
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Single-use WebSocket connection ticket issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebSocketTicketSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users:
+    post:
+      tags: [Users]
+      operationId: createUser
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags: [Users]
+      operationId: listUsers
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Page of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPageSuccessResponse'
+
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Users]
+      operationId: getUser
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Users]
+      operationId: deleteUser
+      x-implementation-status: implemented
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/by-email:
+    get:
+      tags: [Users]
+      operationId: getUserByEmail
+      x-implementation-status: implemented
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /vehicles:
+    post:
+      tags: [Fleet]
+      operationId: createVehicle
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVehicleRequest'
+      responses:
+        '201':
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /vehicles/{vehicleId}:
+    get:
+      tags: [Fleet]
+      operationId: getVehicle
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/VehicleId'
+      responses:
+        '200':
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /drivers:
+    post:
+      tags: [Fleet]
+      operationId: createDriver
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDriverRequest'
+      responses:
+        '201':
+          description: Driver created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /drivers/{driverId}:
+    get:
+      tags: [Fleet]
+      operationId: getDriver
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '200':
+          description: Driver found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /cargo:
+    post:
+      tags: [Cargo]
+      operationId: createCargo
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCargoRequest'
+      responses:
+        '201':
+          description: Cargo created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CargoSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /cargo/{cargoId}:
+    get:
+      tags: [Cargo]
+      operationId: getCargo
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/CargoId'
+      responses:
+        '200':
+          description: Cargo found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CargoSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /providers:
+    get:
+      tags: [Providers]
+      operationId: listProviders
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Provider list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderListSuccessResponse'
+
+  /providers/{providerId}/availability:
+    post:
+      tags: [Providers]
+      operationId: updateProviderAvailability
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/ProviderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProviderAvailabilityRequest'
+      responses:
+        '201':
+          description: Provider availability observation recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /trips:
+    post:
+      tags: [Trips]
+      operationId: createTrip
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripRequest'
+      responses:
+        '201':
+          description: Trip created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /trips/{tripId}:
+    parameters:
+      - $ref: '#/components/parameters/TripId'
+    get:
+      tags: [Trips]
+      operationId: getTrip
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: Trip found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /trips/{tripId}/start:
+    parameters:
+      - $ref: '#/components/parameters/TripId'
+    post:
+      tags: [Trips]
+      operationId: startTrip
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: Trip started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripSuccessResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /trips/{tripId}/assign:
+    post:
+      tags: [Trips]
+      operationId: assignTrip
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignTripRequest'
+      responses:
+        '200':
+          description: Trip resources assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripSuccessResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /telemetry:
+    post:
+      tags: [Telemetry]
+      operationId: ingestTelemetry
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelemetryObservation'
+      responses:
+        '202':
+          description: Telemetry accepted idempotently
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryAcceptedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /trips/{tripId}/telemetry-policy:
+    post:
+      tags: [Telemetry]
+      operationId: evaluateTelemetryPolicy
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelemetryPolicyRequest'
+      responses:
+        '200':
+          description: Persisted adaptive telemetry policy decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryPolicyDecisionSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /disruptions:
+    post:
+      tags: [Disruptions]
+      operationId: reportDisruption
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDisruptionRequest'
+      responses:
+        '202':
+          description: Disruption accepted idempotently
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisruptionSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /trips/{tripId}/recovery-plans/generate:
+    parameters:
+      - $ref: '#/components/parameters/TripId'
+    post:
+      tags: [Recovery]
+      operationId: generateRecoveryPlans
+      x-implementation-status: implemented
+      responses:
+        '202':
+          description: Plan generation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryPlanListSuccessResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /trips/{tripId}/recovery-plans:
+    parameters:
+      - $ref: '#/components/parameters/TripId'
+    get:
+      tags: [Recovery]
+      operationId: listRecoveryPlans
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: Recovery plans for the active disruption
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryPlanListSuccessResponse'
+
+  /recovery-plans/{planId}/select:
+    parameters:
+      - $ref: '#/components/parameters/PlanId'
+    post:
+      tags: [Recovery]
+      operationId: selectRecoveryPlan
+      x-implementation-status: planned
+      responses:
+        '200':
+          description: Plan selected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryPlanSuccessResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /recovery-plans/{planId}/invalidate:
+    parameters:
+      - $ref: '#/components/parameters/PlanId'
+    post:
+      tags: [Recovery]
+      operationId: invalidateRecoveryPlan
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvalidatePlanRequest'
+      responses:
+        '202':
+          description: Plan invalidated and re-planning initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryPlanSuccessResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /trips/{tripId}/decision-explanation:
+    get:
+      tags: [Decisions]
+      operationId: getDecisionExplanation
+      x-implementation-status: implemented
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Latest decision explanation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionExplanationSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /trips/{tripId}/metrics:
+    get:
+      tags: [Metrics]
+      operationId: getTripMetrics
+      x-implementation-status: planned
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: CARE and baseline metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripMetricsSuccessResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DriverId:
+      name: driverId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CargoId:
+      name: cargoId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProviderId:
+      name: providerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TripId:
+      name: tripId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Conflict:
+      description: Request conflicts with current state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+  schemas:
+    UserRole:
+      type: string
+      enum: [ADMIN, DISPATCHER, DRIVER]
+    TripStatus:
+      type: string
+      enum: [CREATED, ASSIGNED, IN_PROGRESS, DISRUPTED, RECOVERY_IN_PROGRESS, COMPLETED, CANCELLED]
+    RecoveryPlanType:
+      type: string
+      enum: [WORKSHOP_REPAIR, SAFE_PARKING_MOBILE_MECHANIC, TOW_REPAIR_OR_TRANSFER, SUBSTITUTE_VEHICLE_TRANSFER, DRIVER_REST, EMERGENCY_ESCALATION]
+    RecoveryPlanStatus:
+      type: string
+      enum: [GENERATED, EVALUATING, FEASIBLE, REJECTED, SELECTED, EXECUTING, INVALIDATED, COMPLETED, FAILED]
+
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          writeOnly: true
+    LoginResult:
+      type: object
+      required: [accessToken, expiresAt, user]
+      properties:
+        accessToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/User'
+    WebSocketTicket:
+      type: object
+      additionalProperties: false
+      required: [ticket, expiresAt]
+      properties:
+        ticket:
+          type: string
+          format: uuid
+        expiresAt:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      additionalProperties: false
+      required: [name, email, phone, role, password]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 12
+          maxLength: 72
+          writeOnly: true
+          maxLength: 150
+        phone:
+          type: string
+          pattern: '^\\+?[0-9]{10,15}$'
+        role:
+          $ref: '#/components/schemas/UserRole'
+    User:
+      type: object
+      required: [id, name, email, phone, role, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateVehicleRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - registrationNumber
+        - vehicleType
+        - heightMeters
+        - widthMeters
+        - grossWeightKg
+        - payloadCapacityKg
+        - maximumEngineTemperatureCelsius
+        - refrigerationSupported
+      properties:
+        registrationNumber:
+          type: string
+          maxLength: 30
+        vehicleType:
+          type: string
+          maxLength: 60
+        heightMeters:
+          type: number
+          exclusiveMinimum: 0
+        widthMeters:
+          type: number
+          exclusiveMinimum: 0
+        grossWeightKg:
+          type: number
+          exclusiveMinimum: 0
+        payloadCapacityKg:
+          type: number
+          exclusiveMinimum: 0
+        maximumEngineTemperatureCelsius:
+          type: number
+          minimum: -50
+          maximum: 250
+        refrigerationSupported:
+          type: boolean
+    Vehicle:
+      allOf:
+        - $ref: '#/components/schemas/CreateVehicleRequest'
+        - type: object
+          required: [id, status, currentEngineHealthPercent, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [AVAILABLE, ASSIGNED, IN_TRANSIT, DISRUPTED, RECOVERY, MAINTENANCE, OUT_OF_SERVICE]
+            currentEngineHealthPercent:
+              type: number
+              minimum: 0
+              maximum: 100
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    CreateDriverRequest:
+      type: object
+      additionalProperties: false
+      required: [userId, licenseNumber, maximumDailyDrivingMinutes]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        licenseNumber:
+          type: string
+          maxLength: 50
+        maximumDailyDrivingMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+    Driver:
+      type: object
+      required:
+        - id
+        - userId
+        - licenseNumber
+        - status
+        - maximumDailyDrivingMinutes
+        - remainingDrivingMinutes
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        licenseNumber:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, ASSIGNED, DRIVING, REST_REQUIRED, RESTING, OFF_DUTY]
+        maximumDailyDrivingMinutes:
+          type: integer
+        remainingDrivingMinutes:
+          type: integer
+        lastRestCompletedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateCargoRequest:
+      type: object
+      additionalProperties: false
+      required: [referenceCode, cargoType, description, weightKg, hazardous]
+      properties:
+        referenceCode:
+          type: string
+          maxLength: 50
+        cargoType:
+          type: string
+          enum: [GENERAL, REFRIGERATED, FROZEN, HAZARDOUS, FRAGILE]
+        description:
+          type: string
+          maxLength: 300
+        weightKg:
+          type: number
+          exclusiveMinimum: 0
+        minimumTemperatureCelsius:
+          type: number
+        maximumTemperatureCelsius:
+          type: number
+        hazardous:
+          type: boolean
+    Cargo:
+      allOf:
+        - $ref: '#/components/schemas/CreateCargoRequest'
+        - type: object
+          required: [id, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    ProviderAvailability:
+      type: object
+      required: [status, observedAt, expiresAt, confidence, requiredResourceAvailable]
+      properties:
+        status:
+          type: string
+          enum: [AVAILABLE, BUSY, UNAVAILABLE, CANCELLED]
+        observedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        estimatedArrivalMinutes:
+          type: integer
+          minimum: 0
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        requiredResourceAvailable:
+          type: boolean
+    UpdateProviderAvailabilityRequest:
+      allOf:
+        - $ref: '#/components/schemas/ProviderAvailability'
+    Provider:
+      type: object
+      required:
+        - id
+        - name
+        - providerType
+        - location
+        - serviceRadiusKm
+        - reliabilityScore
+        - active
+        - capabilities
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        providerType:
+          type: string
+          enum: [WORKSHOP, MOBILE_MECHANIC, TOWING_SERVICE, SAFE_PARKING, SUBSTITUTE_VEHICLE]
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+        serviceRadiusKm:
+          type: number
+          exclusiveMinimum: 0
+        reliabilityScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        active:
+          type: boolean
+        capabilities:
+          type: array
+          items:
+            type: string
+        latestAvailability:
+          $ref: '#/components/schemas/ProviderAvailability'
+
+    GeoPoint:
+      type: object
+      additionalProperties: false
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+    CreateTripRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - referenceCode
+        - vehicleId
+        - driverId
+        - cargoId
+        - routeId
+        - deliveryDeadline
+        - maximumWaitingMinutes
+        - acceptedEtaThresholdMinutes
+      properties:
+        referenceCode:
+          type: string
+          maxLength: 50
+        vehicleId:
+          type: string
+          format: uuid
+        driverId:
+          type: string
+          format: uuid
+        cargoId:
+          type: string
+          format: uuid
+        routeId:
+          type: string
+          format: uuid
+        deliveryDeadline:
+          type: string
+          format: date-time
+        maximumWaitingMinutes:
+          type: integer
+          minimum: 1
+        acceptedEtaThresholdMinutes:
+          type: integer
+          minimum: 1
+    AssignTripRequest:
+      type: object
+      additionalProperties: false
+      required: [vehicleId, driverId, assignedAt]
+      properties:
+        vehicleId:
+          type: string
+          format: uuid
+        driverId:
+          type: string
+          format: uuid
+        assignedAt:
+          type: string
+          format: date-time
+    Trip:
+      type: object
+      required:
+        - id
+        - companyId
+        - referenceCode
+        - vehicleId
+        - driverId
+        - cargoId
+        - routeId
+        - status
+        - deliveryDeadline
+        - maximumWaitingMinutes
+        - acceptedEtaThresholdMinutes
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        referenceCode:
+          type: string
+        vehicleId:
+          type: string
+          format: uuid
+        driverId:
+          type: string
+          format: uuid
+        cargoId:
+          type: string
+          format: uuid
+        routeId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/TripStatus'
+        deliveryDeadline:
+          type: string
+          format: date-time
+        maximumWaitingMinutes:
+          type: integer
+        acceptedEtaThresholdMinutes:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TelemetryObservation:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - tripId
+        - vehicleId
+        - recordedAt
+        - receivedAt
+        - expiresAt
+        - location
+        - confidence
+        - observationStatus
+        - source
+        - networkState
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        vehicleId:
+          type: string
+          format: uuid
+        recordedAt:
+          type: string
+          format: date-time
+        receivedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+        engineTemperatureCelsius:
+          type: number
+          minimum: -50
+          maximum: 250
+        cargoTemperatureCelsius:
+          type: number
+          minimum: -100
+          maximum: 100
+        speedKph:
+          type: number
+          minimum: 0
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        observationStatus:
+          type: string
+          enum: [FRESH, AGING, EXPIRED, UNVERIFIED]
+        source:
+          type: string
+          enum: [SIMULATOR, DRIVER_DEVICE, VEHICLE_DEVICE]
+        networkState:
+          type: string
+          enum: [ONLINE, WEAK, OFFLINE, SYNCHRONIZING]
+    TelemetryAccepted:
+      type: object
+      required: [eventId, duplicate, acceptedAt]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        duplicate:
+          type: boolean
+        acceptedAt:
+          type: string
+          format: date-time
+    TelemetryPolicyRequest:
+      type: object
+      additionalProperties: false
+      required: [eventId, observedAt, nearDecisionPoint, safelyParked]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        observedAt:
+          type: string
+          format: date-time
+        nearDecisionPoint:
+          type: boolean
+        safelyParked:
+          type: boolean
+    TelemetryPolicyDecision:
+      type: object
+      required: [tripId, eventId, policyState, decidedAt, explanationCode]
+      properties:
+        tripId:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          format: uuid
+        policyState:
+          type: string
+          enum:
+            - NORMAL_TRAVEL
+            - NEAR_DECISION_POINT
+            - ROUTE_DEVIATION
+            - BREAKDOWN_OR_EMERGENCY
+            - SAFELY_PARKED
+            - OFFLINE_BUFFERING
+        intervalSeconds:
+          type: integer
+          minimum: 1
+          nullable: true
+        decidedAt:
+          type: string
+          format: date-time
+        explanationCode:
+          type: string
+
+    CreateDisruptionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - tripId
+        - contextSnapshotId
+        - type
+        - severity
+        - detectedAt
+        - evidence
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        contextSnapshotId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - VEHICLE_OVERHEATING
+            - VEHICLE_BREAKDOWN
+            - ROUTE_BLOCKED
+            - ROUTE_DEVIATION
+            - CARGO_TEMPERATURE_DEVIATION
+            - DRIVER_REST_REQUIRED
+            - PROVIDER_CANCELLED
+            - UNSAFE_STOP_LOCATION
+        severity:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        detectedAt:
+          type: string
+          format: date-time
+        explanationCodes:
+          type: array
+          items:
+            type: string
+        evidence:
+          type: object
+          additionalProperties: true
+    Disruption:
+      allOf:
+        - $ref: '#/components/schemas/CreateDisruptionRequest'
+        - type: object
+          required: [id, active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            active:
+              type: boolean
+
+    PlanEvaluation:
+      type: object
+      required:
+        - planId
+        - feasible
+        - violatedHardConstraints
+        - warnings
+        - softConstraintResults
+        - riskScore
+        - uncertaintyScore
+        - benefitScore
+        - lambdaCoefficient
+        - muCoefficient
+        - finalUtility
+        - confidence
+        - freshnessSummary
+        - explanationCodes
+        - evaluatedAt
+        - evaluatorVersion
+        - inputHash
+      properties:
+        planId:
+          type: string
+          format: uuid
+        feasible:
+          type: boolean
+        violatedHardConstraints:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        softConstraintResults:
+          type: object
+          additionalProperties:
+            type: number
+        riskScore:
+          type: number
+        uncertaintyScore:
+          type: number
+        benefitScore:
+          type: number
+        lambdaCoefficient:
+          type: number
+          minimum: 0
+        muCoefficient:
+          type: number
+          minimum: 0
+        finalUtility:
+          type: number
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        freshnessSummary:
+          type: object
+          additionalProperties:
+            type: string
+        explanationCodes:
+          type: array
+          items:
+            type: string
+        evaluatedAt:
+          type: string
+          format: date-time
+        evaluatorVersion:
+          type: string
+        inputHash:
+          type: string
+          pattern: '^[a-fA-F0-9]{64}$'
+    RecoveryPlanStep:
+      type: object
+      required:
+        - sequence
+        - actionCode
+        - instruction
+        - expectedStartAt
+        - expectedCompleteAt
+        - requiredResources
+      properties:
+        sequence:
+          type: integer
+          minimum: 1
+        actionCode:
+          type: string
+        instruction:
+          type: string
+        providerId:
+          type: string
+          format: uuid
+        expectedStartAt:
+          type: string
+          format: date-time
+        expectedCompleteAt:
+          type: string
+          format: date-time
+        requiredResources:
+          type: array
+          items:
+            type: string
+    RecoveryPlan:
+      type: object
+      required: [id, tripId, disruptionId, type, status, steps, evaluation, generatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        disruptionId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/RecoveryPlanType'
+        status:
+          $ref: '#/components/schemas/RecoveryPlanStatus'
+        providerId:
+          type: string
+          format: uuid
+        safeStopId:
+          type: string
+          format: uuid
+        steps:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/RecoveryPlanStep'
+        evaluation:
+          $ref: '#/components/schemas/PlanEvaluation'
+        generatedAt:
+          type: string
+          format: date-time
+        selectedAt:
+          type: string
+          format: date-time
+    InvalidatePlanRequest:
+      type: object
+      additionalProperties: false
+      required: [eventId, explanationCode, observedAt]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        explanationCode:
+          type: string
+        observedAt:
+          type: string
+          format: date-time
+        details:
+          type: string
+          maxLength: 500
+
+    DecisionExplanation:
+      type: object
+      required:
+        - tripId
+        - disruptionId
+        - rejectedPlanIds
+        - selectionExplanationCodes
+        - rejectionExplanationCodes
+        - deterministicTieBreakRule
+        - explainedAt
+      properties:
+        tripId:
+          type: string
+          format: uuid
+        disruptionId:
+          type: string
+          format: uuid
+        selectedPlanId:
+          type: string
+          format: uuid
+        rejectedPlanIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        selectionExplanationCodes:
+          type: array
+          items:
+            type: string
+        rejectionExplanationCodes:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        deterministicTieBreakRule:
+          type: string
+        explainedAt:
+          type: string
+          format: date-time
+
+    StrategyMetrics:
+      type: object
+      required:
+        - strategyCode
+        - successfulRecovery
+        - invalidRecommendations
+        - recoveryTimeSeconds
+        - reroutingOperations
+        - telemetryTransmissions
+        - estimatedBandwidthBytes
+        - decisionLatencyMs
+        - staleDataDecisions
+      properties:
+        strategyCode:
+          type: string
+        successfulRecovery:
+          type: boolean
+        invalidRecommendations:
+          type: integer
+          minimum: 0
+        recoveryTimeSeconds:
+          type: integer
+          minimum: 0
+        reroutingOperations:
+          type: integer
+          minimum: 0
+        telemetryTransmissions:
+          type: integer
+          minimum: 0
+        estimatedBandwidthBytes:
+          type: integer
+          format: int64
+          minimum: 0
+        decisionLatencyMs:
+          type: integer
+          minimum: 0
+        staleDataDecisions:
+          type: integer
+          minimum: 0
+    TripMetrics:
+      type: object
+      required: [tripId, measuredAt, strategies]
+      properties:
+        tripId:
+          type: string
+          format: uuid
+        measuredAt:
+          type: string
+          format: date-time
+        strategies:
+          type: array
+          items:
+            $ref: '#/components/schemas/StrategyMetrics'
+
+    PageMetadata:
+      type: object
+      required: [page, size, totalElements, totalPages, first, last]
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+    UserPage:
+      type: object
+      required: [content, metadata]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        metadata:
+          $ref: '#/components/schemas/PageMetadata'
+
+    SuccessEnvelope:
+      type: object
+      required: [success, timestamp, traceId]
+      properties:
+        success:
+          type: boolean
+          const: true
+        timestamp:
+          type: string
+          format: date-time
+        traceId:
+          type: string
+          format: uuid
+    UserSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/User'
+    UserPageSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/UserPage'
+    LoginSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/LoginResult'
+    WebSocketTicketSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/WebSocketTicket'
+    TripSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Trip'
+    VehicleSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Vehicle'
+    DriverSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Driver'
+    CargoSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Cargo'
+    ProviderSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Provider'
+    ProviderListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Provider'
+    TelemetryAcceptedResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+              data:
+                $ref: '#/components/schemas/TelemetryAccepted'
+    TelemetryPolicyDecisionSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/TelemetryPolicyDecision'
+    DisruptionSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Disruption'
+    RecoveryPlanSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/RecoveryPlan'
+    RecoveryPlanListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecoveryPlan'
+    DecisionExplanationSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/DecisionExplanation'
+    TripMetricsSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/TripMetrics'
+
+    ApiErrorResponse:
+      type: object
+      required: [success, error, timestamp, traceId]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: object
+          required: [code, message, fieldErrors]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            fieldErrors:
+              type: array
+              items:
+                type: object
+                required: [field, message]
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+        timestamp:
+          type: string
+          format: date-time
+        traceId:
+          type: string
+          format: uuid

@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: neepo-care-backend
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/neepo_care}
+    username: ${DATABASE_USERNAME:neepo_user}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+neepo:
+  security:
+    jwt-secret: ${JWT_SECRET}
+    jwt-expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
+    issuer: neepo-care
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized

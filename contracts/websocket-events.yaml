@@ -1,0 +1,46 @@
+version: 1
+endpoint: /ws
+
+authentication:
+  ticketEndpoint: /api/v1/events/ticket
+  ticketLifetimeSeconds: 30
+  rules:
+    - Request a ticket with a valid bearer token.
+    - Supply ticket and tripId as WebSocket query parameters.
+    - A ticket is single-use and must be reissued for every reconnect attempt.
+    - The server authorizes tenant access and driver assignment before upgrade.
+
+envelope:
+  required:
+    - eventId
+    - type
+    - tripId
+    - aggregateId
+    - occurredAt
+    - schemaVersion
+    - payload
+
+eventTypes:
+  TELEMETRY_UPDATED:
+    aggregate: telemetryObservation
+  DISRUPTION_DETECTED:
+    aggregate: disruption
+  PLANS_GENERATED:
+    aggregate: disruption
+  PLAN_SELECTED:
+    aggregate: recoveryPlan
+  PLAN_INVALIDATED:
+    aggregate: recoveryPlan
+  REPLANNING_STARTED:
+    aggregate: replanningCycle
+  REPLANNING_COMPLETED:
+    aggregate: replanningCycle
+  TRIP_STATUS_CHANGED:
+    aggregate: trip
+
+deliveryRules:
+  - Publish only after the related database transaction commits.
+  - Consumers deduplicate by eventId.
+  - occurredAt is an ISO-8601 UTC instant.
+  - schemaVersion starts at 1 and changes only for a breaking payload change.
+  - Reconnection does not imply missed events were recovered; a REST refresh is required.

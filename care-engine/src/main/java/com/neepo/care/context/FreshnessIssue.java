@@ -1,0 +1,11 @@
+package com.neepo.care.context;
+
+public enum FreshnessIssue {
+    MISSING_METADATA,
+    INVALID_CONFIDENCE,
+    INVALID_TEMPORAL_ORDER,
+    FUTURE_OBSERVATION,
+    SOURCE_UNVERIFIED,
+    EXPIRED,
+    BELOW_MINIMUM_CONFIDENCE
+}
