@@ -5,14 +5,14 @@ export const theme = createTheme({
     mode: "light",
     primary: {
       main: "#0d5b63",
-      dark: "#0a3a40",
+      dark: "#083a3f",
       light: "#e0f2f1",
       contrastText: "#ffffff"
     },
     secondary: {
-      main: "#d97706",
-      light: "#fef3c7",
-      dark: "#b45309",
+      main: "#0284c7",
+      light: "#e0f2fe",
+      dark: "#0369a1",
       contrastText: "#ffffff"
     },
     background: {
@@ -21,7 +21,7 @@ export const theme = createTheme({
     },
     text: {
       primary: "#0f172a",
-      secondary: "#64748b"
+      secondary: "#475569"
     },
     success: {
       main: "#10b981",
@@ -51,38 +51,40 @@ export const theme = createTheme({
   typography: {
     fontFamily: '"Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h1: {
-      fontSize: "clamp(2rem, 4vw, 3rem)",
+      fontSize: "clamp(1.85rem, 3.5vw, 2.75rem)",
       fontWeight: 800,
       letterSpacing: "-0.035em",
-      lineHeight: 1.15
+      lineHeight: 1.18
     },
     h2: {
-      fontSize: "clamp(1.5rem, 2.5vw, 2.1rem)",
+      fontSize: "clamp(1.4rem, 2.2vw, 1.95rem)",
       fontWeight: 750,
       letterSpacing: "-0.025em",
       lineHeight: 1.25
     },
     h3: {
-      fontSize: "1.2rem",
+      fontSize: "1.18rem",
       fontWeight: 700,
       letterSpacing: "-0.015em",
       lineHeight: 1.35
     },
     h4: {
-      fontSize: "1.05rem",
+      fontSize: "1.02rem",
       fontWeight: 650,
       letterSpacing: "-0.01em"
     },
     body1: {
-      fontSize: "0.95rem",
-      lineHeight: 1.55
+      fontSize: "0.938rem",
+      lineHeight: 1.55,
+      color: "#1e293b"
     },
     body2: {
-      fontSize: "0.875rem",
-      lineHeight: 1.5
+      fontSize: "0.85rem",
+      lineHeight: 1.5,
+      color: "#475569"
     },
     caption: {
-      fontSize: "0.78rem",
+      fontSize: "0.75rem",
       fontWeight: 600,
       letterSpacing: "0.02em"
     },
@@ -100,12 +102,12 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           border: "1px solid #e2e8f0",
-          borderRadius: 18,
+          borderRadius: 16,
           backgroundColor: "#ffffff",
-          boxShadow: "0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02)",
+          boxShadow: "0 2px 8px -2px rgba(15, 23, 42, 0.04), 0 1px 3px -1px rgba(15, 23, 42, 0.02)",
           transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
-            boxShadow: "0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03)"
+            boxShadow: "0 8px 24px -4px rgba(15, 23, 42, 0.07), 0 2px 8px -2px rgba(15, 23, 42, 0.03)"
           }
         }
       }
@@ -113,7 +115,7 @@ export const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         rounded: {
-          borderRadius: 18
+          borderRadius: 16
         }
       }
     },
@@ -123,16 +125,30 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          minHeight: 42,
+          minHeight: 40,
           borderRadius: 12,
           padding: "8px 18px",
           fontWeight: 700,
-          transition: "all 0.15s ease-in-out"
+          fontSize: "0.875rem",
+          transition: "all 0.15s ease-in-out",
+          "&:focus-visible": {
+            outline: "2.5px solid #0d5b63",
+            outlineOffset: 2
+          }
         },
         containedPrimary: {
           backgroundColor: "#0d5b63",
+          color: "#ffffff",
           "&:hover": {
-            backgroundColor: "#094349"
+            backgroundColor: "#083a3f"
+          }
+        },
+        outlinedPrimary: {
+          borderColor: "#0d5b63",
+          color: "#0d5b63",
+          "&:hover": {
+            backgroundColor: "rgba(13, 91, 99, 0.04)",
+            borderColor: "#083a3f"
           }
         }
       }
@@ -141,16 +157,16 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           fontWeight: 700,
-          borderRadius: 10
+          borderRadius: 8
         }
       }
     },
     MuiAlert: {
       styleOverrides: {
         root: {
-          borderRadius: 14,
+          borderRadius: 12,
           fontWeight: 500,
-          fontSize: "0.9rem"
+          fontSize: "0.875rem"
         },
         standardSuccess: {
           backgroundColor: "#ecfdf5",
@@ -181,6 +197,10 @@ export const theme = createTheme({
           backgroundColor: "#ffffff",
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: "#0d5b63"
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#0d5b63",
+            borderWidth: 2
           }
         }
       }

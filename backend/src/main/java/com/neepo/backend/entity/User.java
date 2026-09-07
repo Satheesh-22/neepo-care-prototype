@@ -46,6 +46,12 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Column(nullable = false, length = 30)
+    private String status = "ACTIVE";
+
+    @Column(name = "last_active_at")
+    private Instant lastActiveAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -65,6 +71,8 @@ public class User {
         this.phone = phone;
         this.role = role;
         this.passwordHash = passwordHash;
+        this.status = "ACTIVE";
+        this.enabled = true;
     }
 
     public static User create(String name, String email, String phone, UserRole role) {
@@ -82,11 +90,54 @@ public class User {
         return user;
     }
 
+    public static User createInvited(UUID companyId, String name, String email, String phone, UserRole role) {
+        User user = new User(name, email, phone, role, "{INVITED}" + UUID.randomUUID());
+        user.companyId = companyId;
+        user.status = "INVITED";
+        user.enabled = false;
+        return user;
+    }
+
+    public void suspend() {
+        this.status = "SUSPENDED";
+        this.enabled = false;
+    }
+
+    public void reactivate() {
+        this.status = "ACTIVE";
+        this.enabled = true;
+    }
+
+    public void activateWithPassword(String encodedPassword) {
+        this.passwordHash = encodedPassword;
+        this.status = "ACTIVE";
+        this.enabled = true;
+    }
+
+    public void updateDetails(String name, String phone, UserRole role) {
+        if (name != null && !name.isBlank()) {
+            this.name = name.trim();
+        }
+        if (phone != null && !phone.isBlank()) {
+            this.phone = phone.trim();
+        }
+        if (role != null) {
+            this.role = role;
+        }
+    }
+
+    public void recordActive(Instant at) {
+        this.lastActiveAt = at;
+    }
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;
+        if (status == null) {
+            status = enabled ? "ACTIVE" : "SUSPENDED";
+        }
     }
 
     @PreUpdate
@@ -123,7 +174,15 @@ public class User {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled && "ACTIVE".equals(status);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public Instant getLastActiveAt() {
+        return lastActiveAt;
     }
 
     public Instant getCreatedAt() {

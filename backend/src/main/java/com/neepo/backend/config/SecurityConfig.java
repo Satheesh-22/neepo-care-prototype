@@ -4,8 +4,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,10 +34,21 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/login", "/ws", "/actuator/health/**", "/actuator/info").permitAll()
+                        .requestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/users/invitations/accept",
+                                "/ws",
+                                "/actuator/health/**",
+                                "/actuator/info"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/company", "/api/v1/company/me").hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
+                        .requestMatchers("/api/v1/company/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/users/**").hasAnyRole("ADMIN", "DISPATCHER")
-                        .requestMatchers("/api/v1/vehicles/**", "/api/v1/drivers/**", "/api/v1/cargo/**")
-                        .hasAnyRole("ADMIN", "DISPATCHER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/drivers/me").hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
+                        .requestMatchers("/api/v1/drivers/**").hasAnyRole("ADMIN", "DISPATCHER")
+                        .requestMatchers("/api/v1/vehicles/**").hasAnyRole("ADMIN", "DISPATCHER")
+                        .requestMatchers("/api/v1/assignments/**").hasAnyRole("ADMIN", "DISPATCHER")
+                        .requestMatchers("/api/v1/cargo/**").hasAnyRole("ADMIN", "DISPATCHER")
                         .requestMatchers("/api/v1/providers/**").hasAnyRole("ADMIN", "DISPATCHER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/trips/**")
                         .hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")

@@ -3,16 +3,19 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Release Hardening & Acceptance Completed
+## Current Status: Web-Page Style & Data Visualization Completed
 
-The release hardening milestone is complete:
+The web-page style, visual hierarchy, dashboard operations telemetry, interactive Leaflet route map, CARE decision explainability comparisons, responsive layouts, accessibility, and demo presentation modes have been implemented and verified:
 
-1. **Metrics Assertions**: Live stack validator (`scripts/validate-live-stack.mjs`) expanded to 23 checks with explicit assertions for telemetry ingestion count (INT-03), duplicate rejection count (INT-04), disruption detection count (INT-05), recovery plan count (INT-06), decision latency and tie-breaking (INT-09, INT-10), WebSocket delivery (INT-03), and offline queue replay and synchronization count (INT-15, INT-16).
-2. **Clean-Database Flyway Migration Automation**: Scripts (`scripts/test-clean-database-migration.ps1` and `.sh`) provision an isolated PostgreSQL 17 container, execute Flyway migrations V1–V6 in order, verify 30 tables, 71 indexes, and safe demo seeds, without touching the development volume.
-3. **Continuous Integration**: `.github/workflows/ci.yml` automates foundation verification, CARE engine tests, backend verify, frontend lint/tests/build, Compose config validation, clean DB migrations, and live acceptance runs.
-4. **Release Packaging**: `scripts/package-release.ps1` and `.sh` produce secret-free, reproducible versioned archives (`dist/release/neepo-care-prototype-v1.0.0.zip`).
+1. **Design System Refinement**: `theme.ts` & `styles.css` with oceanic navy/teal contrast, micro-animations, accessible focus rings, and reduced-motion support.
+2. **Operations Dashboard Visualization**: `DashboardPage.tsx` & `MetricCard.tsx` with active trips, disruption cards, decision latency, evidence freshness, offline queue status, and sparklines.
+3. **Telemetry Visualization**: `TelemetryGauges.tsx` & `DriverTripPage.tsx` with engine overheating limits, cold-chain compliance bands (2°C–8°C), speed gauges, and adaptive policy interval displays.
+4. **Live Route & Incident Map**: `TripMap.tsx` with route polylines, detour tracks, vehicle heading, origin depot, incident point (106°C), safe stop hub, partner mechanic, and center-on-vehicle controls.
+5. **CARE Decision Visualization**: `RecoveryPlanComparison.tsx` & `TripWorkspacePage.tsx` with multi-dimensional scoring ($U = \text{Benefit} - \lambda\text{Risk} - \mu\text{Uncertainty}$), constraint compliance badges, decision journey timeline, and cryptographic hash evidence.
+6. **Accessible & Responsive Polish**: 320px–1920px responsiveness, keyboard navigation, and WCAG AA contrast.
+7. **Demo Presentation Mode**: `DemoModeBar.tsx` interactive controller for operator demonstrations and guided scenario testing.
 
-## Required Verification Commands
+## Required Verification & Benchmark Commands
 
 ```powershell
 # Foundation & Compose
@@ -22,9 +25,21 @@ docker compose config --quiet
 # Clean DB Migration Test (isolated ephemeral container)
 powershell -ExecutionPolicy Bypass -File .\scripts\test-clean-database-migration.ps1
 
+# Disposable Database Restore Drill (isolated ephemeral container)
+powershell -ExecutionPolicy Bypass -File .\scripts\drill-database-restore.ps1
+
+# Upgrade & Rollback Validation Suite
+powershell -ExecutionPolicy Bypass -File .\scripts\test-upgrade-rollback.ps1
+
+# Hardware Sensor Gateway Bench Prototype
+node scripts/bench-hardware-gateway.mjs
+
 # Live Stack Integration Gate (23 checks)
 $env:NEEPO_TEST_PASSWORD = '<local demo password>'
 node scripts/validate-live-stack.mjs
+
+# Live Stack Performance & Scaling Benchmark
+node scripts/benchmark-live-stack.mjs
 
 # Backend and CARE engine
 cd backend
@@ -43,11 +58,8 @@ cd ..
 powershell -ExecutionPolicy Bypass -File .\scripts\package-release.ps1
 ```
 
-## Next Milestone: Production Readiness & Deployment Hardening
+## Next Production Steps
 
-For subsequent production milestones:
-
-1. Secret management integration (e.g. AWS Secrets Manager / HashiCorp Vault / GCP Secret Manager).
-2. Production TLS termination, rate-limiting, and ingress security policies.
-3. PostGIS multi-region read replicas and automated point-in-time recovery (PITR) backups.
-4. Telemetry load testing and horizontal autoscaling benchmarks.
+1. Configure cloud provider IAM credentials and cluster access (AWS EKS / GCP GKE) when authorized.
+2. Link External Secrets Operator to target cloud secret store (AWS Secrets Manager / Vault).
+3. Connect staging CI/CD pipeline triggers and schedule weekly restore drills.

@@ -1,0 +1,72 @@
+groups:
+  - name: neepo-care-alerts
+    rules:
+      - alert: NeepoCareHighErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) * 100 > 1
+        for: 3m
+        labels:
+          severity: critical
+          service: neepo-backend
+        annotations:
+          summary: "NEEPO-CARE backend 5xx error rate > 1%"
+          description: "High error rate detected: HTTP 5xx responses exceed 1% over the last 5 minutes."
+
+      - alert: NeepoCareSolverLatencySpike
+        expr: histogram_quantile(0.95, sum(rate(care_decision_duration_seconds_bucket[5m])) by (le)) > 0.250
+        for: 3m
+        labels:
+          severity: warning
+          service: care-engine
+        annotations:
+          summary: "CARE recovery-plan generation p95 latency > 250ms"
+          description: "CARE decision solver p95 latency is {{ $value }}s, exceeding the 250ms SLA."
+
+      - alert: NeepoCareTelemetryLagDetected
+        expr: (time() - neepo_telemetry_last_ingest_timestamp_seconds) > 60
+        for: 2m
+        labels:
+          severity: warning
+          service: telemetry-pipeline
+        annotations:
+          summary: "Telemetry ingestion lag exceeds 60 seconds"
+          description: "No telemetry events ingested for active trips in the last 60 seconds."
+
+      - alert: NeepoCareDbConnectionPoolNearCapacity
+        expr: (hikaricp_connections_active{pool="NeepoHikariPool"} / hikaricp_connections_max{pool="NeepoHikariPool"}) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "HikariCP database connection pool > 85% saturated"
+          description: "PostgreSQL connection pool usage is {{ $value }}%. Potential exhaustion risk."
+
+      - alert: NeepoCareRedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: redis-cache
+        annotations:
+          summary: "Redis cache memory utilization > 80%"
+          description: "Redis instance memory footprint exceeds 80% of maxmemory allocation."
+
+      - alert: NeepoCareOfflineReplayFailures
+        expr: increase(neepo_offline_replay_errors_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          service: telemetry-ingestion
+        annotations:
+          summary: "Offline batch telemetry replay errors detected"
+          description: "Over 5 batch replay failures encountered in the last 5 minutes."
+
+      - alert: NeepoCareAuthFailureBurst
+        expr: increase(neepo_auth_failures_total[5m]) > 20
+        for: 2m
+        labels:
+          severity: warning
+          service: authentication
+        annotations:
+          summary: "Unusual burst of authentication failures"
+          description: "More than 20 authentication failures recorded in 5 minutes. Possible brute force or expired credential rotation."

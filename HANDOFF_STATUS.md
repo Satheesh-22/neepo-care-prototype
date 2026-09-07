@@ -5,70 +5,60 @@
 - Active branch: `feature/full-stack-integration`
 - Identity, JWT authentication, RBAC and tenant isolation: implemented
 - Fleet, cargo, provider, trip, telemetry and disruption APIs: implemented
+- Company profile, user invitations, driver onboarding, vehicle registration & driver-to-vehicle allocations: implemented
 - Deterministic CARE context, recovery, invalidation, re-planning and benchmark analytics: implemented
-- React/TypeScript PWA with dispatcher and driver workflows: implemented
+- React/TypeScript PWA with administrator, dispatcher and driver workflows: implemented
 - Authenticated, one-use WebSocket tickets and post-commit telemetry events: implemented
 - Adaptive telemetry policy, offline synchronization and reconnect de-duplication: implemented
 - PostgreSQL/PostGIS, Redis, Spring Boot and Nginx containers: healthy
-- Flyway: six immutable ordered migrations, validated against clean ephemeral database and persistent development volume
+- Flyway: seven immutable ordered migrations (V1–V7), validated against clean ephemeral database and persistent development volume
 - Release automation, clean-database migration test, and GitHub Actions CI: implemented
+- Production readiness & deployment hardening: audited, benchmarked, and documented
+- Production operations & IaC manifests: implemented (Kubernetes manifests, External Secrets Operator, staging deployment CI/CD, disposable backup/restore drill, Prometheus alert rules, Grafana dashboard, zero-downtime rollback validation suite, hardware gateway bench prototype)
+- Authorized staging deployment readiness & v1.1 roadmap planning: implemented (offline manifest validator, operator deployment runbook, 12-check staging validation suite, multi-stage hardware pilot simulation, v1.1 product roadmap & functional specifications)
 
 ## Verification evidence
 
-Verified on 6 September 2026:
+Verified on 7 September 2026:
 
-- Backend `test`: 118 tests passed, 0 failures, 0 errors, 0 skipped
+- Backend `test`: 131 tests passed, 0 failures, 0 errors, 0 skipped
 - CARE-engine `test`: 117 tests passed, 0 failures, 0 errors, 0 skipped
-- Frontend: ESLint clean, 7 Vitest tests passed, production PWA build succeeded
-- Foundation validator (`scripts/validate-foundation.py`): passed
+- Frontend: ESLint clean (0 warnings), 17 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
+- Web-page Style & Data Visualization: implemented (Design tokens & theme refinement, Dashboard operations & latency overview with sparklines, Telemetry gauges with thermal & cold-chain zones, interactive Leaflet route & incident map with detour lines, CARE multi-attribute decision comparison & timeline, and Demo Mode presentation controller)
+- Role-based Onboarding & Admin Pages: implemented (`/admin/company`, `/admin/users`, `/admin/drivers`, `/admin/drivers/new`, `/admin/vehicles`, `/admin/vehicles/new`, `/admin/assignments`, `/driver/profile`, `/invite/accept`, `/forbidden`)
+- Foundation validator (`scripts/validate-foundation.py`): passed (V1–V7 verified)
 - Docker Compose configuration: valid
 - Frontend `/health`: HTTP 200
 - Backend `/actuator/health`: `UP`
-- Clean database migration script (`scripts/test-clean-database-migration.ps1` / `.sh`): passed (30 tables, 71 indexes, seeded demo data verified on isolated PostgreSQL container with zero secrets leaked)
-- Live-stack validator (`scripts/validate-live-stack.mjs`): 23 checks passed:
-  1. Frontend health
-  2. Backend health
-  3. Unauthenticated API rejection
-  4. Dispatcher authentication
-  5. Driver authentication
-  6. Dispatcher assigned-trip access
-  7. Driver assigned-trip access
-  8. One-use WebSocket ticket authentication
-  9. Telemetry ingestion count assertion (INT-03)
-  10. Post-commit telemetry WebSocket delivery (INT-03)
-  11. Duplicate telemetry event count assertion (INT-04)
-  12. Consumed WebSocket ticket rejection
-  13. Offline telemetry queue replay and synchronization count (INT-15, INT-16)
-  14. Acceptance trip resource provisioning
-  15. Acceptance trip assignment and start
-  16. Automatic overheating disruption detection count (INT-05)
-  17. Automatic recovery plan generation count (INT-06)
-  18. Hard-constraint rejection evidence
-  19. Expired provider availability rejection (INT-08)
-  20. Deterministic tie-break rule and decision explanation with latency assertion (INT-09, INT-10)
-  21. Adaptive emergency telemetry policy (INT-13)
-  22. Adaptive safely parked telemetry policy (INT-14)
-  23. Invalidation and automatic re-planning (INT-11, INT-12)
-- Release packaging script (`scripts/package-release.ps1` / `.sh`): produced secret-free `dist/release/neepo-care-prototype-v1.0.0.zip` (0.68 MB, checksum verified, strict exclusions enforced)
+- Staging Kubernetes manifest validator (`scripts/validate-staging-manifests.ps1` / `.sh`): passed (11 manifests checked, 100% security context & probe compliance, 0 hardcoded secrets)
+- Staging deployment validation suite (`scripts/validate-staging-deployment.mjs`): passed (12 checks green across RBAC, tenant isolation, telemetry, disruption detection, CARE decisions, readiness/liveness probes, and DB connectivity)
+- Clean database migration script (`scripts/test-clean-database-migration.ps1` / `.sh`): passed (32 tables, 83 indexes, seeded demo data verified on isolated PostgreSQL container with zero secrets leaked)
+- Disposable database restore drill (`scripts/drill-database-restore.ps1` / `.sh`): passed (29 public tables, 73 indexes, seeded users and trips verified, restore time 1.78s, zero development volume impact)
+- Upgrade & rollback validation suite (`scripts/test-upgrade-rollback.ps1` / `.sh`): passed (zero downtime rolling upgrade simulation, Flyway schema protection, rollback recovery in 3ms, offline queue preserved)
+- Hardware gateway bench prototype (`scripts/bench-hardware-gateway.mjs`): passed (GNSS, OBD-II temp, cargo RTD probe, NOR Flash offline buffering, HMAC device signature, batch replay with deduplication)
+- Hardware gateway controlled pilot simulation (`scripts/pilot-hardware-gateway.mjs`): passed (7-stage drive cycle, dead-zone flash buffering, engine temp anomaly, LTE handoff replay, and CARE disruption acknowledgment)
+- Live-stack validator (`scripts/validate-live-stack.mjs`): 23 checks passed (INT-01 through INT-18 mapped)
+- Live-stack benchmark runner (`scripts/benchmark-live-stack.mjs`): passed within production SLA thresholds (Concurrent logins 64.8 ops/sec, Ingestion 38.1 ops/sec, Duplicate Idempotency 148.8 ops/sec, CARE queries 104.3 ops/sec)
+- Release packaging script (`scripts/package-release.ps1` / `.sh`): produced secret-free `dist/release/neepo-care-prototype-v1.0.0.zip` (0.84 MB, SHA-256 verified)
 
 The four Compose services are running for local review:
 
 - PWA: `http://localhost:3000`
 - Backend: `http://localhost:8080`
 
-## Live-validation corrections & release hardening
+## Production operations & Staging deliverables
 
-- PostgreSQL telemetry timestamp parameters use explicit JDBC timestamps.
-- Provider, context, disruption, recovery and replanning timestamps use explicit JDBC timestamps.
-- User administration is tenant-scoped, including driver-user provisioning.
-- Post-commit telemetry processing runs in a new atomic transaction and updates trip state.
-- Plan invalidation invokes the existing CARE replanner and completes the persisted lifecycle.
-- The frontend health check uses `127.0.0.1`, avoiding Alpine `localhost` IPv6 resolution failures.
-- Nginx does not write WebSocket ticket query strings to access logs.
-- Frontend driver command console exposes `startTrip` action and guarantees trip is active before telemetry policy evaluation.
-- Live stack validator includes explicit metrics assertions for telemetry ingestion, duplicate rejection, disruption detection, recovery plan generation, decision latency, WebSocket delivery, and offline queue synchronization mapped to INT-01..INT-18.
-- Clean-database Flyway migration automation runs against isolated ephemeral containers without modifying or risking development database volumes.
-- Continuous Integration workflow (`.github/workflows/ci.yml`) validates foundation, CARE engine, backend, frontend, Compose config, clean DB migration, and full live acceptance suite.
+- **Kubernetes Manifests & Kustomize**: `deploy/k8s/` (`namespace.yaml`, `configmap.yaml`, `backend-deployment.yaml`, `backend-service.yaml`, `backend-hpa.yaml`, `frontend-deployment.yaml`, `frontend-service.yaml`, `ingress.yaml`, `network-policy.yaml`, `kustomization.yaml`).
+- **Offline Manifest Validator**: `scripts/validate-staging-manifests.ps1` & `scripts/validate-staging-manifests.sh` (validates pod security standards, resource limits, health probes, network policies, and zero hardcoded secrets).
+- **Staging Deployment Operator Checklist**: `docs/setup/STAGING_DEPLOYMENT_OPERATOR_CHECKLIST.md` (prerequisites, cloud IAM, cluster setup, deployment sequence, smoke tests, rollback protocols, and dry-run execution).
+- **Staging Automated Validation Suite**: `scripts/validate-staging-deployment.mjs` (12-check automated suite for RBAC, tenant isolation, telemetry ingestion, duplicate protection, overheating triggers, CARE decisions, Kubernetes probes, and DB health).
+- **v1.1 Product Roadmap & Specification**: `docs/architecture/V1_1_PRODUCT_ROADMAP_AND_SPECIFICATION.md` (detailed epics, user-facing gap analysis, acceptance criteria, and non-breaking Flyway V7 migration strategy for telemetry history, multi-channel alerts, compliance exports, fleet analytics, and hardware pilot).
+- **Hardware Gateway Controlled Pilot Simulation**: `scripts/pilot-hardware-gateway.mjs` (7-stage drive cycle simulating GNSS, OBD-II/CAN engine temp, cargo temp probe, cellular dead zone flash buffering, and HMAC authentication).
+- **External Secret Management**: `deploy/k8s/external-secrets/` (`secret-store.yaml`, `external-secrets.yaml`) and `docs/architecture/EXTERNAL_SECRETS_MANAGEMENT.md` (AWS Secrets Manager & HashiCorp Vault integration, zero secret exposure).
+- **Staging Deployment Pipeline**: `.github/workflows/staging-deploy.yml` (immutable OCI image builds, automated test gates, Kustomize dry-run, container smoke tests, manual promotion approval).
+- **Disposable Database Restore Drill**: `scripts/drill-database-restore.ps1` & `scripts/drill-database-restore.sh` (ephemeral container restore, schema/index/data integrity assertions, RTO/RPO verification).
+- **Observability & Dashboards**: `deploy/observability/prometheus-rules.yaml`, `deploy/observability/grafana-dashboard.json`, and `docs/architecture/OBSERVABILITY_AND_OPERATIONS.md` (metric definitions, alert thresholds, MDC trace correlation, SRE runbooks).
+- **Upgrade & Rollback Procedures**: `scripts/test-upgrade-rollback.ps1` & `scripts/test-upgrade-rollback.sh`, and `docs/setup/UPGRADE_AND_ROLLBACK_PROCEDURES.md` (zero-downtime rolling upgrades, Flyway immutability, emergency rollback).
 
 ## Safety notes
 
@@ -76,3 +66,4 @@ The four Compose services are running for local review:
 - Do not delete the working PostgreSQL volume merely to rerun the application.
 - Do not edit applied migrations V1–V6; add a new migration for future schema changes.
 - Demo credentials are local-development data and must not be used in a deployed environment.
+- Do not connect uncertified hardware to moving vehicles; the software simulator is the primary test source.

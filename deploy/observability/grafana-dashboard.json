@@ -1,0 +1,147 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "System Overview & SLA Monitoring",
+      "type": "row"
+    },
+    {
+      "id": 2,
+      "title": "HTTP Request Rate & 5xx Errors",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (status)",
+          "legendFormat": "HTTP {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "CARE Decision Solver Latency (p50 / p95 / p99)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(care_decision_duration_seconds_bucket[1m])) by (le)) * 1000",
+          "legendFormat": "p50 (ms)"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(care_decision_duration_seconds_bucket[1m])) by (le)) * 1000",
+          "legendFormat": "p95 (ms)"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(care_decision_duration_seconds_bucket[1m])) by (le)) * 1000",
+          "legendFormat": "p99 (ms)"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "id": 4,
+      "title": "Telemetry & Real-Time Engine Health",
+      "type": "row"
+    },
+    {
+      "id": 5,
+      "title": "Telemetry Ingestion Rate & Queue Lag",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "targets": [
+        {
+          "expr": "sum(rate(neepo_telemetry_events_ingested_total[1m]))",
+          "legendFormat": "Ingested Events/sec"
+        },
+        {
+          "expr": "time() - neepo_telemetry_last_ingest_timestamp_seconds",
+          "legendFormat": "Telemetry Lag (s)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "WebSocket Active Connections & Disruption Broadcasts",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "targets": [
+        {
+          "expr": "neepo_websocket_active_sessions",
+          "legendFormat": "Active Sessions"
+        },
+        {
+          "expr": "sum(rate(neepo_disruption_events_broadcast_total[1m]))",
+          "legendFormat": "Broadcasts/sec"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
+      "id": 7,
+      "title": "Database & Redis Infrastructure",
+      "type": "row"
+    },
+    {
+      "id": 8,
+      "title": "HikariCP Connection Pool Utilization",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "targets": [
+        {
+          "expr": "hikaricp_connections_active{pool=\"NeepoHikariPool\"}",
+          "legendFormat": "Active Connections"
+        },
+        {
+          "expr": "hikaricp_connections_idle{pool=\"NeepoHikariPool\"}",
+          "legendFormat": "Idle Connections"
+        },
+        {
+          "expr": "hikaricp_connections_max{pool=\"NeepoHikariPool\"}",
+          "legendFormat": "Max Limit"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Redis Memory & Cache Operations",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes / 1024 / 1024",
+          "legendFormat": "Used Memory (MB)"
+        },
+        {
+          "expr": "rate(redis_keyspace_hits_total[1m]) / (rate(redis_keyspace_hits_total[1m]) + rate(redis_keyspace_misses_total[1m])) * 100",
+          "legendFormat": "Hit Ratio (%)"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["neepo-care", "operations", "production"],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "NEEPO-CARE Production Operations Dashboard",
+  "uid": "neepo-care-ops",
+  "version": 1
+}

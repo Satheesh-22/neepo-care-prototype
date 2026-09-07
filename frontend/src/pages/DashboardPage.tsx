@@ -1,10 +1,12 @@
 import AccessTimeRounded from "@mui/icons-material/AccessTimeRounded";
 import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
+import CloudOffRounded from "@mui/icons-material/CloudOffRounded";
 import LocalShippingRounded from "@mui/icons-material/LocalShippingRounded";
 import RouteRounded from "@mui/icons-material/RouteRounded";
 import SensorsRounded from "@mui/icons-material/SensorsRounded";
 import ShieldRounded from "@mui/icons-material/ShieldRounded";
+import SpeedRounded from "@mui/icons-material/SpeedRounded";
 import TimelineRounded from "@mui/icons-material/TimelineRounded";
 import WarningAmberRounded from "@mui/icons-material/WarningAmberRounded";
 import Alert from "@mui/material/Alert";
@@ -22,10 +24,14 @@ import { Link } from "react-router-dom";
 import { neepoApi } from "../api";
 import { DEMO_TRIP_ID } from "../api/mockApi";
 import { useAuthStore } from "../auth/authStore";
+import { MetricCard } from "../components/MetricCard";
 import { StatusPill } from "../components/StatusPill";
+import { useOfflineQueue } from "../offline/useOfflineQueue";
 
 export function DashboardPage() {
   const session = useAuthStore((state) => state.session)!;
+  const { pendingCount } = useOfflineQueue();
+
   const trip = useQuery({
     queryKey: ["trip", DEMO_TRIP_ID],
     queryFn: () => neepoApi.getTrip(DEMO_TRIP_ID, session.accessToken)
@@ -33,50 +39,24 @@ export function DashboardPage() {
 
   const isDriver = session.user.role === "DRIVER";
   const roleMessage = isDriver
-    ? "Your vehicle telemetry is monitored by CARE. Review recovery instructions or update current observations."
+    ? "Your vehicle telemetry is actively monitored by CARE. Review recovery instructions or transmit onboard observations."
     : session.user.role === "ADMIN"
-      ? "Fleet operations and decision transparency engines are running with full constraint compliance."
+      ? "Fleet operations, policy compliance, and decision transparency engines are running with full constraint validation."
       : "Active disruption detected in the corridor. CARE has generated deterministic recovery alternatives.";
 
   const workspacePath = isDriver ? `/driver/trips/${DEMO_TRIP_ID}` : `/trips/${DEMO_TRIP_ID}`;
-
-  const kpis = [
-    {
-      icon: <LocalShippingRounded sx={{ fontSize: 24, color: "#0d5b63" }} />,
-      bg: "rgba(13, 91, 99, 0.1)",
-      label: "Active Trips",
-      value: "1",
-      detail: "1 requiring recovery attention",
-      status: "warning"
-    },
-    {
-      icon: <ShieldRounded sx={{ fontSize: 24, color: "#10b981" }} />,
-      bg: "rgba(16, 185, 129, 0.1)",
-      label: "Safety Enforcement",
-      value: "100%",
-      detail: "All hard constraints verified",
-      status: "success"
-    },
-    {
-      icon: <TimelineRounded sx={{ fontSize: 24, color: "#0284c7" }} />,
-      bg: "rgba(2, 132, 199, 0.1)",
-      label: "Evidence Usability",
-      value: "95%",
-      detail: "Temporal freshness confirmed",
-      status: "info"
-    }
-  ];
+  const actionButtonText = isDriver ? "Open driver trip" : "Open recovery workspace";
 
   return (
     <Stack spacing={3.5}>
-      {/* Welcome & Incident Banner */}
+      {/* Welcome & System Status Banner */}
       <Box
         sx={{
           p: { xs: 2.5, sm: 3.5 },
           borderRadius: 4,
           background: "linear-gradient(135deg, #071b2a 0%, #0d3b43 100%)",
           color: "white",
-          boxShadow: "0 12px 30px -5px rgba(7, 27, 42, 0.2)",
+          boxShadow: "0 12px 30px -5px rgba(7, 27, 42, 0.25)",
           position: "relative",
           overflow: "hidden"
         }}
@@ -86,7 +66,7 @@ export function DashboardPage() {
             position: "absolute",
             right: -30,
             bottom: -40,
-            opacity: 0.07,
+            opacity: 0.06,
             transform: "rotate(-10deg)",
             pointerEvents: "none"
           }}
@@ -100,64 +80,110 @@ export function DashboardPage() {
               icon={<CheckCircleOutlineRounded sx={{ fontSize: "16px !important", color: "#34d399 !important" }} />}
               label="CARE Engine Online"
               size="small"
-              sx={{ bgcolor: "rgba(16, 185, 129, 0.2)", color: "#a7f3d0", fontWeight: 700, border: "1px solid rgba(16, 185, 129, 0.3)" }}
+              sx={{
+                bgcolor: "rgba(16, 185, 129, 0.2)",
+                color: "#a7f3d0",
+                fontWeight: 700,
+                border: "1px solid rgba(16, 185, 129, 0.35)"
+              }}
             />
-            <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
-              Tenant: NEEPO Demo Logistics
+            <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.65)" }}>
+              Tenant: NEEPO Demo Logistics · Real-Time PostGIS Mesh
             </Typography>
           </Stack>
 
           <Typography variant="h1" sx={{ color: "#ffffff", fontSize: { xs: "1.6rem", sm: "2.1rem" } }}>
             Welcome, {session.user.name.split(" ")[0]}
           </Typography>
-          <Typography sx={{ color: "rgba(255, 255, 255, 0.8)", maxWidth: 700, fontSize: "0.95rem" }}>
+          <Typography sx={{ color: "rgba(255, 255, 255, 0.82)", maxWidth: 720, fontSize: "0.95rem" }}>
             {roleMessage}
           </Typography>
         </Stack>
       </Box>
 
-      {/* KPI Stats Grid */}
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
-        {kpis.map((kpi) => (
-          <Card key={kpi.label} sx={{ flex: 1, p: 0.5 }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                <Box>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" letterSpacing="0.04em">
-                    {kpi.label}
-                  </Typography>
-                  <Typography variant="h2" sx={{ mt: 0.5, fontWeight: 800 }}>
-                    {kpi.value}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" mt={0.5}>
-                    {kpi.detail}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 3,
-                    bgcolor: kpi.bg,
-                    display: "grid",
-                    placeItems: "center"
-                  }}
-                >
-                  {kpi.icon}
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
+      {/* Operations Overview Metric Cards */}
+      <Box>
+        <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" letterSpacing="0.06em" mb={1.5} display="block">
+          Operations & Decision Telemetry Overview
+        </Typography>
+
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap="wrap">
+          <MetricCard
+            label="Active Trips"
+            value="1"
+            detail="1 requiring recovery attention"
+            icon={<LocalShippingRounded sx={{ fontSize: 24, color: "#0d5b63" }} />}
+            iconBg="rgba(13, 91, 99, 0.12)"
+            statusColor="#0d5b63"
+            sparklineData={[1, 1, 1, 1, 1, 1]}
+          />
+
+          <MetricCard
+            label="Disruptions"
+            value="1"
+            detail="Engine thermal limit exceeded"
+            icon={<WarningAmberRounded sx={{ fontSize: 24, color: "#ef4444" }} />}
+            iconBg="rgba(239, 68, 68, 0.12)"
+            statusColor="#ef4444"
+            sparklineData={[0, 0, 1, 1, 1]}
+          />
+
+          <MetricCard
+            label="Decision Latency"
+            value="12 ms"
+            detail="Production SLA < 250 ms"
+            icon={<SpeedRounded sx={{ fontSize: 24, color: "#10b981" }} />}
+            iconBg="rgba(16, 185, 129, 0.12)"
+            statusColor="#10b981"
+            sparklineData={[18, 15, 14, 12, 12, 11, 12]}
+          />
+
+          <MetricCard
+            label="Telemetry Freshness"
+            value="100%"
+            detail="Temporal window validated"
+            icon={<TimelineRounded sx={{ fontSize: 24, color: "#0284c7" }} />}
+            iconBg="rgba(2, 132, 199, 0.12)"
+            statusColor="#0284c7"
+            sparklineData={[98, 99, 100, 100, 100]}
+          />
+
+          <MetricCard
+            label="Safety Constraints"
+            value="100%"
+            detail="Zero hard violations passed"
+            icon={<ShieldRounded sx={{ fontSize: 24, color: "#0d5b63" }} />}
+            iconBg="rgba(13, 91, 99, 0.12)"
+            statusColor="#0d5b63"
+            sparklineData={[100, 100, 100, 100, 100]}
+          />
+
+          <MetricCard
+            label="Offline Queue"
+            value={pendingCount.toString()}
+            detail={pendingCount > 0 ? "Observations queued locally" : "All device buffers synced"}
+            icon={<CloudOffRounded sx={{ fontSize: 24, color: pendingCount > 0 ? "#f59e0b" : "#64748b" }} />}
+            iconBg={pendingCount > 0 ? "rgba(245, 158, 11, 0.12)" : "rgba(100, 116, 139, 0.12)"}
+            statusColor={pendingCount > 0 ? "#f59e0b" : "#64748b"}
+            sparklineData={pendingCount > 0 ? [0, 1, 2, pendingCount] : [0, 0, 0]}
+          />
+        </Stack>
+      </Box>
 
       {/* Priority Trip Section */}
       <Box>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h3">Active Operational Corridor</Typography>
-          <Typography variant="caption" color="text.secondary">
-            Auto-refreshing via WebSocket
-          </Typography>
+          <Box>
+            <Typography variant="h3">Priority trip</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Active operational corridor monitored by CARE
+            </Typography>
+          </Box>
+          <Chip
+            size="small"
+            label="WebSocket Live Sync"
+            sx={{ bgcolor: "#ecfdf5", color: "#047857", fontWeight: 700, border: "1px solid #a7f3d0" }}
+          />
         </Stack>
 
         {trip.isPending && <Skeleton variant="rounded" height={220} sx={{ borderRadius: 4 }} />}
@@ -171,16 +197,27 @@ export function DashboardPage() {
         {trip.data && (
           <Card
             sx={{
-              border: "1px solid",
-              borderColor: trip.data.status === "DISRUPTED" ? "#fecaca" : "divider",
-              overflow: "hidden"
+              border: "1.5px solid",
+              borderColor: trip.data.status === "DISRUPTED" ? "#fca5a5" : "#e2e8f0",
+              overflow: "hidden",
+              boxShadow: trip.data.status === "DISRUPTED" ? "0 8px 24px -4px rgba(239, 68, 68, 0.12)" : undefined
             }}
           >
             {trip.data.status === "DISRUPTED" && (
-              <Box sx={{ bgcolor: "#fef2f2", px: 3, py: 1, borderBottom: "1px solid #fecaca", display: "flex", alignItems: "center", gap: 1 }}>
-                <WarningAmberRounded sx={{ fontSize: 18, color: "#ef4444" }} />
-                <Typography variant="caption" sx={{ color: "#b91c1c", fontWeight: 700 }}>
-                  Active Disruption: Engine temperature limit exceeded. Recovery plans ready for dispatch.
+              <Box
+                sx={{
+                  bgcolor: "#fef2f2",
+                  px: 3,
+                  py: 1.2,
+                  borderBottom: "1px solid #fecaca",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.2
+                }}
+              >
+                <Box className="critical-pulse-dot" />
+                <Typography variant="caption" sx={{ color: "#b91c1c", fontWeight: 800 }}>
+                  Active Disruption: Engine temperature exceeded 105°C threshold. CARE recovery plan generated.
                 </Typography>
               </Box>
             )}
@@ -202,7 +239,7 @@ export function DashboardPage() {
                   </Stack>
 
                   <Typography color="text.secondary" fontSize="0.92rem">
-                    High-priority medical shipment · Temperature-sensitive diagnostic reagents (2°C – 8°C)
+                    High-priority medical shipment · Temperature-sensitive diagnostic reagents (2°C – 8°C safe band)
                   </Typography>
 
                   <Stack direction="row" spacing={3} flexWrap="wrap" sx={{ pt: 1 }}>
@@ -255,7 +292,7 @@ export function DashboardPage() {
                       boxShadow: "0 8px 18px -4px rgba(13, 91, 99, 0.4)"
                     }}
                   >
-                    {isDriver ? "Open Driver Console" : "Open Recovery Workspace"}
+                    {actionButtonText}
                   </Button>
 
                   {!isDriver && (
@@ -279,4 +316,3 @@ export function DashboardPage() {
     </Stack>
   );
 }
-

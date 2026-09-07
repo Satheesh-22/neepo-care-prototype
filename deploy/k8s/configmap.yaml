@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neepo-backend-config
+  namespace: neepo-prod
+  labels:
+    app.kubernetes.io/name: neepo-backend
+    app.kubernetes.io/part-of: neepo-care
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  DATABASE_URL: "jdbc:postgresql://postgres.production.internal:5432/neepo_care?sslmode=verify-full&sslrootcert=/etc/ssl/certs/pg-ca.pem"
+  DATABASE_USERNAME: "neepo_app"
+  REDIS_HOST: "redis.production.internal"
+  REDIS_PORT: "6379"
+  JWT_EXPIRATION_MINUTES: "30"
+  LOGGING_LEVEL_COM_NEEPO: "INFO"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus"

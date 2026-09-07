@@ -20,7 +20,7 @@ import java.time.Instant;
 import java.util.Locale;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class AuthService {
     private final UserRepository users;
     private final PasswordEncoder passwords;
@@ -47,6 +47,9 @@ public class AuthService {
                 .filter(candidate -> passwords.matches(request.password(), candidate.getPasswordHash()))
                 .orElseThrow(InvalidCredentialsException::new);
         Instant issuedAt = clock.instant();
+        user.recordActive(issuedAt);
+        users.save(user);
+
         Instant expiresAt = issuedAt.plus(tokenLifetime);
         JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
                 .issuer(issuer).issuedAt(issuedAt).expiresAt(expiresAt)
@@ -58,8 +61,18 @@ public class AuthService {
         }
         JwtClaimsSet claims = claimsBuilder.build();
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        UserResponse responseUser = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPhone(),
-                user.getRole(), user.getCreatedAt(), user.getUpdatedAt());
+        UserResponse responseUser = new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole(),
+                user.getStatus(),
+                user.getLastActiveAt(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                "ACTIVE"
+        );
         return new LoginResponse(token, expiresAt, responseUser);
     }
 }

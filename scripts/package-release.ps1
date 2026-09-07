@@ -115,10 +115,8 @@ if (Test-Path $forbiddenEnv) {
 }
 
 Write-Host "Compressing release archive to $zipPath..."
-Compress-Archive -Path "$stageDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
-
-# Verify archive contents for secrets and excluded directories
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory($stageDir, $zipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
 $zip = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
 $violations = @()
 

@@ -1,6 +1,4 @@
 import AutoAwesomeRounded from "@mui/icons-material/AutoAwesomeRounded";
-import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
-import ErrorOutlineRounded from "@mui/icons-material/ErrorOutlineRounded";
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import PsychologyRounded from "@mui/icons-material/PsychologyRounded";
 import SpeedRounded from "@mui/icons-material/SpeedRounded";
@@ -13,13 +11,13 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
-import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { neepoApi } from "../api";
 import { useAuthStore } from "../auth/authStore";
+import { RecoveryPlanComparison } from "../components/RecoveryPlanComparison";
 import { StatusPill } from "../components/StatusPill";
 import { TripMap } from "../components/TripMap";
 
@@ -117,226 +115,69 @@ export function TripWorkspacePage() {
       {/* Map Overview */}
       <TripMap />
 
+      {/* Recovery Journey Timeline */}
+      <Card sx={{ border: "1px solid #e2e8f0", bgcolor: "#ffffff" }}>
+        <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+          <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" letterSpacing="0.05em" display="block" mb={1.5}>
+            Decision & Recovery Lifecycle
+          </Typography>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }}>
+            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#fef2f2", border: "1px solid #fca5a5", flex: 1, width: "100%" }}>
+              <Typography variant="caption" color="error.main" fontWeight={800} display="block">1. Disruption Ingestion</Typography>
+              <Typography variant="body2" fontWeight={650} color="#991b1b">Engine Overheat 106°C</Typography>
+            </Box>
+
+            <Typography sx={{ display: { xs: "none", sm: "block" }, color: "text.secondary" }}>→</Typography>
+
+            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f0f9ff", border: "1px solid #bae6fd", flex: 1, width: "100%" }}>
+              <Typography variant="caption" color="info.main" fontWeight={800} display="block">2. Context Snapshot</Typography>
+              <Typography variant="body2" fontWeight={650} color="#075985">Temporal Freshness Verified</Typography>
+            </Box>
+
+            <Typography sx={{ display: { xs: "none", sm: "block" }, color: "text.secondary" }}>→</Typography>
+
+            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#ecfdf5", border: "1px solid #a7f3d0", flex: 1, width: "100%" }}>
+              <Typography variant="caption" color="success.main" fontWeight={800} display="block">3. Deterministic Selection</Typography>
+              <Typography variant="body2" fontWeight={650} color="#065f46">Safe Parking Mobile Mechanic</Typography>
+            </Box>
+
+            <Typography sx={{ display: { xs: "none", sm: "block" }, color: "text.secondary" }}>→</Typography>
+
+            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fafc", border: "1px solid #e2e8f0", flex: 1, width: "100%" }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={800} display="block">4. Driver Execution</Typography>
+              <Typography variant="body2" fontWeight={650} color="#334155">Stabilize & Safe Stop</Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
       {/* Alternatives & Explainability Grid */}
       <Stack direction={{ xs: "column", lg: "row" }} spacing={3} alignItems="flex-start">
         {/* Left Column: Recovery Alternatives */}
         <Box flex={1.6} width="100%">
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h3">Evaluated Recovery Alternatives</Typography>
+            <Typography variant="h3">Recovery alternatives</Typography>
             <Typography variant="caption" color="text.secondary">
-              Sorted by generation sequence
+              Evaluated with hard safety constraints
             </Typography>
           </Stack>
 
-          <Stack spacing={2.5}>
-            {plans.isPending && (
-              <Stack alignItems="center" py={4}>
-                <CircularProgress size={32} />
-              </Stack>
-            )}
+          {plans.isPending && (
+            <Stack alignItems="center" py={4}>
+              <CircularProgress size={32} />
+            </Stack>
+          )}
 
-            {plans.data?.map((plan) => {
-              const isSelected = plan.status === "SELECTED";
-              const isRejected = plan.status === "REJECTED";
-              const isFeasible = plan.evaluation.feasible;
-
-              return (
-                <Card
-                  key={plan.id}
-                  sx={{
-                    border: "1.5px solid",
-                    borderColor: isSelected ? "#10b981" : isRejected ? "#fca5a5" : "#cbd5e1",
-                    bgcolor: isSelected ? "rgba(16, 185, 129, 0.02)" : "#ffffff",
-                    boxShadow: isSelected
-                      ? "0 8px 24px -4px rgba(16, 185, 129, 0.15), 0 2px 6px -1px rgba(16, 185, 129, 0.08)"
-                      : undefined
-                  }}
-                >
-                  <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
-                    {/* Plan Header */}
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-                      <Box>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Typography variant="h3" fontWeight={750}>
-                            {plan.type.replaceAll("_", " ")}
-                          </Typography>
-                          {isSelected && (
-                            <Chip
-                              icon={<VerifiedRounded sx={{ fontSize: "16px !important", color: "#047857 !important" }} />}
-                              label="Selected by CARE"
-                              size="small"
-                              sx={{
-                                bgcolor: "#ecfdf5",
-                                color: "#047857",
-                                fontWeight: 800,
-                                border: "1px solid #a7f3d0",
-                                fontSize: "0.72rem"
-                              }}
-                            />
-                          )}
-                        </Stack>
-
-                        <Typography variant="body2" color="text.secondary" mt={0.5}>
-                          {isFeasible ? (
-                            <span style={{ color: "#047857", fontWeight: 600 }}>
-                              ✓ Passed all hard safety constraints (height, weight, hours, temperature)
-                            </span>
-                          ) : (
-                            <span style={{ color: "#b91c1c", fontWeight: 600 }}>
-                              ✕ {plan.evaluation.violatedHardConstraints.length} hard constraint violation(s)
-                            </span>
-                          )}
-                        </Typography>
-                      </Box>
-
-                      <Chip
-                        icon={isSelected ? <CheckCircleRounded /> : isRejected ? <ErrorOutlineRounded /> : undefined}
-                        label={plan.status}
-                        size="small"
-                        sx={{
-                          fontWeight: 800,
-                          bgcolor: isSelected ? "#10b981" : isRejected ? "#fee2e2" : "#f1f5f9",
-                          color: isSelected ? "#ffffff" : isRejected ? "#991b1b" : "#475569",
-                          border: `1px solid ${isSelected ? "#059669" : isRejected ? "#fca5a5" : "#cbd5e1"}`
-                        }}
-                      />
-                    </Stack>
-
-                    {/* Hard Constraint Violations if rejected */}
-                    {plan.evaluation.violatedHardConstraints.length > 0 && (
-                      <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 2, bgcolor: "#fef2f2", border: "1px solid #fecaca" }}>
-                        <Typography variant="caption" color="error.main" fontWeight={700} display="block" mb={0.5}>
-                          Hard Constraint Failures:
-                        </Typography>
-                        <Stack direction="row" spacing={1} flexWrap="wrap">
-                          {plan.evaluation.violatedHardConstraints.map((constraint) => (
-                            <Chip
-                              key={constraint}
-                              label={constraint.replaceAll("_", " ")}
-                              size="small"
-                              sx={{ bgcolor: "#ffffff", color: "#b91c1c", border: "1px solid #fca5a5", fontSize: "0.7rem", fontWeight: 700 }}
-                            />
-                          ))}
-                        </Stack>
-                      </Box>
-                    )}
-
-                    {/* Metric Cards Grid */}
-                    <Box sx={{ mt: 2.5, p: 2, borderRadius: 2.5, bgcolor: "#f8fafc", border: "1px solid #e2e8f0" }}>
-                      <Stack direction="row" spacing={{ xs: 2, sm: 4 }} flexWrap="wrap" alignItems="center">
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                            Utility Score U(p)
-                          </Typography>
-                          <Typography variant="h3" fontWeight={800} sx={{ color: isSelected ? "#0d5b63" : "text.primary" }}>
-                            {plan.evaluation.finalUtility.toFixed(1)}
-                          </Typography>
-                        </Box>
-
-                        <Divider orientation="vertical" flexItem />
-
-                        <Box sx={{ minWidth: 100 }}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                              Confidence
-                            </Typography>
-                            <Typography variant="caption" fontWeight={800}>
-                              {Math.round(plan.evaluation.confidence * 100)}%
-                            </Typography>
-                          </Stack>
-                          <LinearProgress
-                            variant="determinate"
-                            value={plan.evaluation.confidence * 100}
-                            sx={{ mt: 0.8, height: 6, borderRadius: 3, bgcolor: "#e2e8f0", "& .MuiLinearProgress-bar": { bgcolor: "#0d5b63" } }}
-                          />
-                        </Box>
-
-                        <Divider orientation="vertical" flexItem />
-
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                            Risk Score R(p)
-                          </Typography>
-                          <Typography fontWeight={700} fontSize="0.95rem">
-                            {plan.evaluation.riskScore.toFixed(0)}
-                          </Typography>
-                        </Box>
-
-                        <Divider orientation="vertical" flexItem />
-
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                            Uncertainty S(p)
-                          </Typography>
-                          <Typography fontWeight={700} fontSize="0.95rem">
-                            {plan.evaluation.uncertaintyScore.toFixed(0)}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </Box>
-
-                    {/* Steps Execution Plan */}
-                    {plan.steps.length > 0 && (
-                      <Box sx={{ mt: 2.5 }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" letterSpacing="0.04em">
-                          Execution Sequence
-                        </Typography>
-                        <Stack spacing={1.5} mt={1}>
-                          {plan.steps.map((step) => (
-                            <Stack
-                              key={step.sequence}
-                              direction="row"
-                              spacing={1.5}
-                              alignItems="center"
-                              sx={{
-                                p: 1.2,
-                                borderRadius: 2,
-                                bgcolor: "#ffffff",
-                                border: "1px solid #e2e8f0"
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  width: 24,
-                                  height: 24,
-                                  borderRadius: "50%",
-                                  bgcolor: "#071b2a",
-                                  color: "white",
-                                  display: "grid",
-                                  placeItems: "center",
-                                  fontSize: "0.75rem",
-                                  fontWeight: 700,
-                                  flexShrink: 0
-                                }}
-                              >
-                                {step.sequence}
-                              </Box>
-                              <Box flex={1}>
-                                <Typography variant="body2" fontWeight={600}>
-                                  {step.instruction}
-                                </Typography>
-                                {step.actionCode && (
-                                  <Typography variant="caption" color="text.secondary">
-                                    Action: {step.actionCode}
-                                  </Typography>
-                                )}
-                              </Box>
-                            </Stack>
-                          ))}
-                        </Stack>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-
-            {plans.data?.length === 0 && (
+          {plans.data && plans.data.length > 0 ? (
+            <RecoveryPlanComparison plans={plans.data} />
+          ) : (
+            !plans.isPending && (
               <Alert severity="info" sx={{ borderRadius: 3 }}>
                 No plans generated yet. Click <strong>Generate Recovery Plans</strong> above to evaluate options.
               </Alert>
-            )}
-          </Stack>
+            )
+          )}
         </Box>
 
         {/* Right Column: Decision Explanation */}
@@ -364,7 +205,7 @@ export function TripWorkspacePage() {
             {explanation.data ? (
               <Stack spacing={2.5}>
                 <Alert severity="success" icon={<SpeedRounded fontSize="inherit" />} sx={{ fontWeight: 600 }}>
-                  Optimal Utility: U = Benefit - λ(Risk) - μ(Uncertainty)
+                  Optimal Utility: U(p) = Benefit - λ(Risk) - μ(Uncertainty)
                 </Alert>
 
                 <Box>
@@ -379,13 +220,13 @@ export function TripWorkspacePage() {
                         spacing={1}
                         alignItems="center"
                         sx={{
-                          p: 1,
+                          p: 1.2,
                           borderRadius: 2,
                           bgcolor: "#f0fdf4",
                           border: "1px solid #bbf7d0"
                         }}
                       >
-                        <VerifiedRounded sx={{ fontSize: 16, color: "#16a34a" }} />
+                        <VerifiedRounded sx={{ fontSize: 18, color: "#16a34a" }} />
                         <Typography variant="body2" fontWeight={650} color="#166534">
                           {code.replaceAll("_", " ")}
                         </Typography>
@@ -439,4 +280,3 @@ export function TripWorkspacePage() {
     </Stack>
   );
 }
-

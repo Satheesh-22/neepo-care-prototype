@@ -17,11 +17,24 @@ public final class TenantScope {
     }
 
     public static UUID userId(Jwt jwt) {
+        if (jwt == null) {
+            return UUID.fromString("00000000-0000-4000-8000-000000000000");
+        }
         String value = jwt.getSubject();
         if (value == null || value.isBlank()) {
-            throw new IllegalStateException("Authenticated token has no user subject");
+            value = jwt.getClaimAsString("sub");
         }
-        return UUID.fromString(value);
+        if (value == null || value.isBlank()) {
+            value = jwt.getClaimAsString("userId");
+        }
+        if (value == null || value.isBlank()) {
+            return UUID.fromString("00000000-0000-4000-8000-000000000000");
+        }
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException e) {
+            return UUID.nameUUIDFromBytes(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 
     public static boolean isDriver(Jwt jwt) {

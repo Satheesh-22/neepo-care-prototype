@@ -1,6 +1,12 @@
+import AccountCircleRounded from "@mui/icons-material/AccountCircleRounded";
+import AssignmentIndRounded from "@mui/icons-material/AssignmentIndRounded";
+import BusinessRounded from "@mui/icons-material/BusinessRounded";
 import DashboardRounded from "@mui/icons-material/DashboardRounded";
+import DirectionsCarRounded from "@mui/icons-material/DirectionsCarRounded";
 import LocalShippingRounded from "@mui/icons-material/LocalShippingRounded";
 import LogoutRounded from "@mui/icons-material/LogoutRounded";
+import PeopleRounded from "@mui/icons-material/PeopleRounded";
+import PersonPinRounded from "@mui/icons-material/PersonPinRounded";
 import SensorsRounded from "@mui/icons-material/SensorsRounded";
 import SyncRounded from "@mui/icons-material/SyncRounded";
 import WifiOffRounded from "@mui/icons-material/WifiOffRounded";
@@ -16,6 +22,7 @@ import { apiMode } from "../api";
 import { DEMO_TRIP_ID } from "../api/mockApi";
 import { useAuthStore } from "../auth/authStore";
 import { useOfflineQueue } from "../offline/useOfflineQueue";
+import { DemoModeBar } from "./DemoModeBar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState(navigator.onLine);
@@ -35,21 +42,39 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const isDriver = session.user.role === "DRIVER";
-  const navItems = [
-    { label: "Dashboard", path: "/", icon: <DashboardRounded sx={{ fontSize: 18 }} /> },
-    {
-      label: isDriver ? "My Trip" : "Workspace",
-      path: isDriver ? `/driver/trips/${DEMO_TRIP_ID}` : `/trips/${DEMO_TRIP_ID}`,
-      icon: <LocalShippingRounded sx={{ fontSize: 18 }} />
-    },
-    ...(!isDriver
-      ? [{ label: "Simulator", path: `/simulator/trips/${DEMO_TRIP_ID}`, icon: <SensorsRounded sx={{ fontSize: 18 }} /> }]
-      : [])
-  ];
+  const role = session.user.role;
+  const navItems: { label: string; path: string; icon: React.ReactNode }[] =
+    role === "ADMIN"
+      ? [
+          { label: "Dashboard", path: "/", icon: <DashboardRounded sx={{ fontSize: 18 }} /> },
+          { label: "Company", path: "/admin/company", icon: <BusinessRounded sx={{ fontSize: 18 }} /> },
+          { label: "Users", path: "/admin/users", icon: <PeopleRounded sx={{ fontSize: 18 }} /> },
+          { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
+          { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },
+          { label: "Assignments", path: "/admin/assignments", icon: <AssignmentIndRounded sx={{ fontSize: 18 }} /> },
+          { label: "Workspace", path: `/trips/${DEMO_TRIP_ID}`, icon: <LocalShippingRounded sx={{ fontSize: 18 }} /> },
+          { label: "Simulator", path: `/simulator/trips/${DEMO_TRIP_ID}`, icon: <SensorsRounded sx={{ fontSize: 18 }} /> }
+        ]
+      : role === "DISPATCHER"
+        ? [
+            { label: "Dashboard", path: "/", icon: <DashboardRounded sx={{ fontSize: 18 }} /> },
+            { label: "Workspace", path: `/trips/${DEMO_TRIP_ID}`, icon: <LocalShippingRounded sx={{ fontSize: 18 }} /> },
+            { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
+            { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },
+            { label: "Assignments", path: "/admin/assignments", icon: <AssignmentIndRounded sx={{ fontSize: 18 }} /> },
+            { label: "Simulator", path: `/simulator/trips/${DEMO_TRIP_ID}`, icon: <SensorsRounded sx={{ fontSize: 18 }} /> }
+          ]
+        : [
+            { label: "Dashboard", path: "/", icon: <DashboardRounded sx={{ fontSize: 18 }} /> },
+            { label: "My Trip", path: `/driver/trips/${DEMO_TRIP_ID}`, icon: <LocalShippingRounded sx={{ fontSize: 18 }} /> },
+            { label: "Profile", path: "/driver/profile", icon: <AccountCircleRounded sx={{ fontSize: 18 }} /> }
+          ];
 
   return (
     <Box minHeight="100vh" sx={{ display: "flex", flexDirection: "column", bgcolor: "background.default" }}>
+      {/* Interactive Demo Mode Controller */}
+      <DemoModeBar />
+
       {/* Top App Bar */}
       <Box
         component="header"
@@ -206,7 +231,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     minHeight: 30
                   }}
                 >
-                  Sync Now
+                  Synchronize now
                 </Button>
               )}
 

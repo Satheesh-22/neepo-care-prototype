@@ -11,17 +11,22 @@ The end-to-end local application is implemented on `feature/full-stack-integrati
 
 - Java 21 and Spring Boot backend with JWT authentication, RBAC and tenant isolation
 - Fleet, cargo, provider, trip, telemetry and disruption APIs
+- Company profile, user invitation, driver onboarding, vehicle registration & allocation management
 - Deterministic CARE context validation, recovery generation, scoring, selection,
   invalidation, re-planning and benchmark metrics
-- PostgreSQL 17 with PostGIS and six ordered Flyway migrations
+- PostgreSQL 17 with PostGIS and seven ordered Flyway migrations (V1–V7)
 - Redis-backed local service boundary
-- React, TypeScript and Vite PWA for dispatcher and driver workflows
+- React, TypeScript and Vite PWA with Administrator, Dispatcher and Driver workflows
 - Adaptive telemetry policy, offline telemetry queue and explicit synchronization
 - Authenticated one-use WebSocket tickets and post-commit telemetry updates
 - Docker Compose deployment with health-checked database, cache, backend and frontend
 - Clean-database Flyway migration automation on isolated ephemeral containers
+- Automated disposable database backup and point-in-time restore drills
+- Production Kubernetes manifests, External Secrets Operator, and Prometheus/Grafana configs
+- Zero-downtime rolling upgrade and rollback validation suites
+- Hardware sensor gateway contract and laboratory bench prototype
 - Reproducible, secret-free release packaging automation
-- Continuous Integration workflow covering backend, CARE engine, frontend, contracts, database migration and live acceptance
+- Continuous Integration and Staging Deployment workflows
 
 See `HANDOFF_STATUS.md` and `docs/testing/INTEGRATION_TEST_PLAN.md` for verified results and test mappings.
 
@@ -32,9 +37,10 @@ backend/       Spring Boot API, persistence, security and WebSocket delivery
 care-engine/   Deterministic CARE domain logic
 contracts/     OpenAPI, event and generated Java/TypeScript contracts
 database/      Physical schema, ERD and demo-data documentation
-docs/          Scope, architecture, rules, testing and handoff records
+deploy/        Kubernetes manifests, Kustomize, External Secrets, and Prometheus/Grafana configs
+docs/          Scope, architecture, rules, testing, operations, and handoff records
 frontend/      React/TypeScript PWA and Nginx gateway configuration
-scripts/       Bootstrap, validation, migration tests, packaging and Git utilities
+scripts/       Bootstrap, validation, migration tests, restore drills, benchmarks, and release utilities
 ```
 
 ## Requirements

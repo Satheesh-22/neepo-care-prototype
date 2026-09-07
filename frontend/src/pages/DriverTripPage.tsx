@@ -31,6 +31,7 @@ import { neepoApi } from "../api";
 import { subscribeToTripEvents, type EventConnectionState } from "../api/eventStream";
 import { useAuthStore } from "../auth/authStore";
 import { StatusPill } from "../components/StatusPill";
+import { TelemetryGauges } from "../components/TelemetryGauges";
 import { submitTelemetry } from "../offline/telemetrySync";
 
 const vehicleId = "00000000-0000-4000-8300-000000000001";
@@ -158,7 +159,7 @@ export function DriverTripPage() {
             {trip.data && <StatusPill status={trip.data.status} />}
           </Stack>
           <Typography color="text.secondary" mt={0.5} fontSize="0.95rem">
-            Vehicle KA-01-EQ-4040 · Live onboard instrument controls & reporting
+            Vehicle KA-01-EQ-4040 · Live onboard instrument controls & telemetry reporting
           </Typography>
         </Box>
 
@@ -176,6 +177,16 @@ export function DriverTripPage() {
           />
         </Stack>
       </Stack>
+
+      {/* Real-time Telemetry Visualization Gauges */}
+      <TelemetryGauges
+        engineTemperature={engineTemperature}
+        cargoTemperature={cargoTemperature}
+        speed={speed}
+        networkState={networkState}
+        observationFreshness="FRESH"
+        safelyParked={safelyParked}
+      />
 
       {/* Trip Assigned Banner */}
       {trip.data?.status === "ASSIGNED" && (
@@ -212,7 +223,7 @@ export function DriverTripPage() {
         </Card>
       )}
 
-      {/* Selected Action Banner */}
+      {/* Next Safe Action Banner */}
       {selectedPlan && (
         <Card sx={{ bgcolor: "#fffbeb", border: "1.5px solid #fde68a" }}>
           <CardContent sx={{ p: 2.5 }}>
@@ -222,7 +233,7 @@ export function DriverTripPage() {
               </Box>
               <Box flex={1}>
                 <Typography variant="caption" color="warning.dark" fontWeight={700} textTransform="uppercase" letterSpacing="0.04em">
-                  Immediate Required Recovery Action
+                  Next safe action:
                 </Typography>
                 <Typography variant="body1" fontWeight={700} color="#78350f" mt={0.2}>
                   {selectedPlan.steps[0]?.instruction}
@@ -233,7 +244,7 @@ export function DriverTripPage() {
         </Card>
       )}
 
-      {/* Main Grid */}
+      {/* Main Controls Grid */}
       <Stack direction={{ xs: "column", lg: "row" }} spacing={3} alignItems="flex-start">
         {/* Left Column: Instruments & Telemetry Observation */}
         <Card sx={{ flex: 1.5, width: "100%", border: "1px solid #e2e8f0" }}>
@@ -278,7 +289,7 @@ export function DriverTripPage() {
                   onClick={() => { setEngineTemperature(70); setSpeed(0); setSafelyParked(true); }}
                   sx={{ borderRadius: 2, fontSize: "0.78rem" }}
                 >
-                  🅿️ Safely Parked (65°C)
+                  🅿️ Safely Parked (70°C)
                 </Button>
               </Stack>
             </Box>
@@ -292,7 +303,7 @@ export function DriverTripPage() {
                     <Typography fontWeight={750} fontSize="0.95rem">Engine Coolant Temperature</Typography>
                   </Stack>
                   <Chip
-                    label={`${engineTemperature} °C ${isEngineCritical ? "CRITICAL" : isEngineWarning ? "WARNING" : "NORMAL"}`}
+                    label={`${engineTemperature} °C ${isEngineCritical ? "CRITICAL (>105°C)" : isEngineWarning ? "WARNING" : "NORMAL"}`}
                     size="small"
                     sx={{ bgcolor: `${engineColor}15`, color: engineColor, fontWeight: 800, border: `1px solid ${engineColor}40` }}
                   />
@@ -360,23 +371,23 @@ export function DriverTripPage() {
               {/* Network State & Safe Parking */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
                 <FormControl fullWidth>
-                  <InputLabel id="network-state-label">Device Network State</InputLabel>
+                  <InputLabel id="network-state-label">Reported network state</InputLabel>
                   <Select
                     labelId="network-state-label"
-                    label="Device Network State"
+                    label="Reported network state"
                     value={networkState}
                     onChange={(event) => setNetworkState(event.target.value as NetworkState)}
                   >
-                    <MenuItem value="ONLINE">🟢 ONLINE (Immediate Dispatch)</MenuItem>
-                    <MenuItem value="WEAK">🟡 WEAK (Unstable Cellular)</MenuItem>
-                    <MenuItem value="OFFLINE">🔴 OFFLINE (Buffer to Device Storage)</MenuItem>
-                    <MenuItem value="SYNCHRONIZING">🔄 SYNCHRONIZING</MenuItem>
+                    <MenuItem value="ONLINE">ONLINE</MenuItem>
+                    <MenuItem value="WEAK">WEAK</MenuItem>
+                    <MenuItem value="OFFLINE">OFFLINE</MenuItem>
+                    <MenuItem value="SYNCHRONIZING">SYNCHRONIZING</MenuItem>
                   </Select>
                 </FormControl>
 
                 <FormControlLabel
                   control={<Checkbox checked={safelyParked} onChange={(event) => setSafelyParked(event.target.checked)} />}
-                  label={<Typography fontWeight={600} fontSize="0.9rem">Vehicle Safely Parked</Typography>}
+                  label={<Typography fontWeight={600} fontSize="0.9rem">Vehicle is safely parked</Typography>}
                   sx={{ whiteSpace: "nowrap" }}
                 />
               </Stack>
@@ -398,8 +409,8 @@ export function DriverTripPage() {
                 {transmit.isPending
                   ? "Transmitting…"
                   : networkState === "OFFLINE"
-                    ? "Buffer Observation to Device Queue"
-                    : "Transmit Telemetry to CARE Engine"}
+                    ? "Save observation offline"
+                    : "Transmit observation"}
               </Button>
 
               {/* Feedback Alerts */}
@@ -411,13 +422,13 @@ export function DriverTripPage() {
 
               {transmit.data?.submission.state === "queued" && (
                 <Alert severity="info" sx={{ borderRadius: 2.5 }}>
-                  Observation stored in local IndexedDB queue. Will auto-sync when online.
+                  Observation saved securely on this device and queued for synchronization.
                 </Alert>
               )}
 
               {transmit.data?.policy && (
                 <Alert severity="info" sx={{ borderRadius: 2.5 }}>
-                  Adaptive Telemetry Cadence: <strong>{transmit.data.policy.policyState.replaceAll("_", " ")}</strong> (Next upload in {transmit.data.policy.intervalSeconds}s).
+                  Adaptive Telemetry Cadence: <strong>{transmit.data.policy.policyState.replaceAll("_", " ")} · next upload in {transmit.data.policy.intervalSeconds} seconds</strong>
                 </Alert>
               )}
 
@@ -549,4 +560,3 @@ function createObservation(
     networkState
   };
 }
-

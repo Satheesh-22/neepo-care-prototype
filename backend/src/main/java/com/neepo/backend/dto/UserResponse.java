@@ -11,7 +11,13 @@ public record UserResponse(
         String email,
         String phone,
         UserRole role,
+        String status,
+        Instant lastActiveAt,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String invitationStatus
 ) {
+    public UserResponse(UUID id, String name, String email, String phone, UserRole role, Instant createdAt, Instant updatedAt) {
+        this(id, name, email, phone, role, "ACTIVE", null, createdAt, updatedAt, "ACTIVE");
+    }
 }
