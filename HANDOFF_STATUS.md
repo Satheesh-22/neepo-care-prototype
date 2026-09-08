@@ -19,9 +19,9 @@
 
 ## Verification evidence
 
-Verified on 7 September 2026:
+Verified on 8 September 2026:
 
-- Backend `test`: 131 tests passed, 0 failures, 0 errors, 0 skipped
+- Backend `test`: 140 tests passed, 0 failures, 0 errors, 0 skipped
 - CARE-engine `test`: 117 tests passed, 0 failures, 0 errors, 0 skipped
 - Frontend: ESLint clean (0 warnings), 17 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
 - Web-page Style & Data Visualization: implemented (Design tokens & theme refinement, Dashboard operations & latency overview with sparklines, Telemetry gauges with thermal & cold-chain zones, interactive Leaflet route & incident map with detour lines, CARE multi-attribute decision comparison & timeline, and Demo Mode presentation controller)
