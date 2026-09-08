@@ -132,11 +132,71 @@ class DriverControllerTest {
                 .andExpect(jsonPath("$.data.verificationState").value("VERIFIED"));
     }
 
+    @Test
+    void rejectDuplicateLicenseNumber() throws Exception {
+        Company company = companyRepository.findAll().get(0);
+        User user = userRepository.save(User.createForCompany(
+                company.getId(), "Existing Driver", "existing@test.com", "+15550112288", UserRole.DRIVER, "unusable"
+        ));
+
+        Driver driver = Driver.createDetailed(
+                company.getId(), user.getId(), "EMP-DUP-1", "Existing", "Driver", "existing@test.com", "+15550112288",
+                "DL-DUP-999", "HEAVY_RIGID", LocalDate.now().plusYears(1),
+                "Emergency Contact", "+15550119999", "San Francisco Hub", "FULL_TIME", null, "VERIFIED", 600
+        );
+        driverRepository.save(driver);
+
+        mockMvc.perform(post("/api/v1/drivers").with(adminJwt(company.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "firstName": "New",
+                                  "lastName": "Driver",
+                                  "email": "newdriver@test.com",
+                                  "phone": "+15550112277",
+                                  "employeeId": "EMP-DUP-2",
+                                  "licenseNumber": "DL-DUP-999",
+                                  "licenseCategory": "HEAVY_RIGID",
+                                  "licenseExpiryDate": "2028-12-31"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("DRIVER_LICENSE_EXISTS"));
+    }
+
+    @Test
+    void driverRoleCannotOnboardDriver() throws Exception {
+        Company company = companyRepository.findAll().get(0);
+        mockMvc.perform(post("/api/v1/drivers").with(driverJwt(company.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "firstName": "Unauth",
+                                  "lastName": "Driver",
+                                  "email": "unauth@test.com",
+                                  "phone": "+15550112266",
+                                  "employeeId": "EMP-UNAUTH",
+                                  "licenseNumber": "DL-UNAUTH",
+                                  "licenseCategory": "HEAVY_RIGID",
+                                  "licenseExpiryDate": "2028-12-31"
+                                }
+                                """))
+                .andExpect(status().isForbidden());
+    }
+
     private org.springframework.test.web.servlet.request.RequestPostProcessor adminJwt(UUID companyId) {
         return jwt().jwt(token -> {
             token.claim("companyId", companyId.toString());
             token.subject(ADMIN_USER_ID.toString());
             token.claim("role", "ADMIN");
         }).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor driverJwt(UUID companyId) {
+        return jwt().jwt(token -> {
+            token.claim("companyId", companyId.toString());
+            token.subject(UUID.randomUUID().toString());
+            token.claim("role", "DRIVER");
+        }).authorities(new SimpleGrantedAuthority("ROLE_DRIVER"));
     }
 }

@@ -133,11 +133,98 @@ class AssignmentControllerTest {
                 .andExpect(jsonPath("$.data.status").value("RELEASED"));
     }
 
+    @Test
+    void rejectAssignmentWhenDriverLicenseExpired() throws Exception {
+        User user = userRepository.save(User.createForCompany(
+                activeCompanyId, "Expired Driver", "expired@test.com", "+15550119998", UserRole.DRIVER, "unusable"
+        ));
+
+        Driver driver = Driver.createDetailed(
+                activeCompanyId, user.getId(), "EMP-EXP", "Expired", "Driver", "expired@test.com", "+15550119998",
+                "DL-EXP-01", "HEAVY_RIGID", LocalDate.now().minusDays(1),
+                "Emergency", "+15550119998", "Hub", "FULL_TIME", null, "VERIFIED", 600
+        );
+        driver = driverRepository.save(driver);
+
+        Vehicle vehicle = Vehicle.createDetailed(
+                activeCompanyId, "CA-8899-TRK", "1HGCR2F8XEA554488", "Volvo", "VNL", 2025,
+                "HEAVY_TRUCK", BigDecimal.valueOf(3.8), BigDecimal.valueOf(2.5),
+                BigDecimal.valueOf(20000.0), BigDecimal.valueOf(10000.0),
+                BigDecimal.valueOf(105.0), true, null, null, "DEV-005", VehicleStatus.AVAILABLE
+        );
+        vehicle = vehicleRepository.save(vehicle);
+
+        mockMvc.perform(post("/api/v1/assignments").with(adminJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "driverId": "%s",
+                                  "vehicleId": "%s"
+                                }
+                                """, driver.getId(), vehicle.getId())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("DRIVER_LICENSE_EXPIRED"));
+    }
+
+    @Test
+    void rejectAssignmentWhenVehicleInMaintenance() throws Exception {
+        User user = userRepository.save(User.createForCompany(
+                activeCompanyId, "Valid Driver", "valid@test.com", "+15550119997", UserRole.DRIVER, "unusable"
+        ));
+
+        Driver driver = Driver.createDetailed(
+                activeCompanyId, user.getId(), "EMP-VAL", "Valid", "Driver", "valid@test.com", "+15550119997",
+                "DL-VAL-01", "HEAVY_RIGID", LocalDate.now().plusYears(2),
+                "Emergency", "+15550119997", "Hub", "FULL_TIME", null, "VERIFIED", 600
+        );
+        driver = driverRepository.save(driver);
+
+        Vehicle vehicle = Vehicle.createDetailed(
+                activeCompanyId, "CA-9900-TRK", "1HGCR2F8XEA554499", "Volvo", "VNL", 2025,
+                "HEAVY_TRUCK", BigDecimal.valueOf(3.8), BigDecimal.valueOf(2.5),
+                BigDecimal.valueOf(20000.0), BigDecimal.valueOf(10000.0),
+                BigDecimal.valueOf(105.0), true, null, null, "DEV-006", VehicleStatus.MAINTENANCE
+        );
+        vehicle = vehicleRepository.save(vehicle);
+
+        mockMvc.perform(post("/api/v1/assignments").with(adminJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "driverId": "%s",
+                                  "vehicleId": "%s"
+                                }
+                                """, driver.getId(), vehicle.getId())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("VEHICLE_UNAVAILABLE"));
+    }
+
+    @Test
+    void driverRoleCannotCreateAssignment() throws Exception {
+        mockMvc.perform(post("/api/v1/assignments").with(driverJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "driverId": "%s",
+                                  "vehicleId": "%s"
+                                }
+                                """, UUID.randomUUID(), UUID.randomUUID())))
+                .andExpect(status().isForbidden());
+    }
+
     private org.springframework.test.web.servlet.request.RequestPostProcessor adminJwt() {
         return jwt().jwt(token -> {
             token.claim("companyId", activeCompanyId.toString());
             token.subject(ADMIN_USER_ID.toString());
             token.claim("role", "ADMIN");
         }).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor driverJwt() {
+        return jwt().jwt(token -> {
+            token.claim("companyId", activeCompanyId.toString());
+            token.subject(UUID.randomUUID().toString());
+            token.claim("role", "DRIVER");
+        }).authorities(new SimpleGrantedAuthority("ROLE_DRIVER"));
     }
 }

@@ -108,11 +108,72 @@ class VehicleControllerTest {
                 .andExpect(jsonPath("$.data.status").value("MAINTENANCE"));
     }
 
+    @Test
+    void rejectDuplicateRegistrationNumber() throws Exception {
+        Vehicle vehicle = Vehicle.createDetailed(
+                COMPANY_ID, "DUP-REG-77", "1HGCR2F8XEA112288", "Kenworth", "T680", 2024,
+                "HEAVY_TRUCK", BigDecimal.valueOf(4.0), BigDecimal.valueOf(2.5),
+                BigDecimal.valueOf(24000.0), BigDecimal.valueOf(12000.0),
+                BigDecimal.valueOf(105.0), false, null, null, null, VehicleStatus.AVAILABLE
+        );
+        vehicleRepository.save(vehicle);
+
+        mockMvc.perform(post("/api/v1/vehicles").with(adminJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "registrationNumber": "DUP-REG-77",
+                                  "vin": "1HGCR2F8XEA998811",
+                                  "make": "Freightliner",
+                                  "model": "Cascadia",
+                                  "year": 2025,
+                                  "vehicleType": "HEAVY_TRUCK",
+                                  "heightMeters": 4.0,
+                                  "widthMeters": 2.5,
+                                  "grossWeightKg": 24000.0,
+                                  "payloadCapacityKg": 9000.0,
+                                  "maximumEngineTemperatureCelsius": 105.0
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("VEHICLE_REGISTRATION_EXISTS"));
+    }
+
+    @Test
+    void driverRoleCannotRegisterVehicle() throws Exception {
+        mockMvc.perform(post("/api/v1/vehicles").with(driverJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "registrationNumber": "UNAUTH-REG-01",
+                                  "vin": "1HGCR2F8XEA998822",
+                                  "make": "Freightliner",
+                                  "model": "Cascadia",
+                                  "year": 2025,
+                                  "vehicleType": "HEAVY_TRUCK",
+                                  "heightMeters": 4.0,
+                                  "widthMeters": 2.5,
+                                  "grossWeightKg": 24000.0,
+                                  "payloadCapacityKg": 9000.0,
+                                  "maximumEngineTemperatureCelsius": 105.0
+                                }
+                                """))
+                .andExpect(status().isForbidden());
+    }
+
     private org.springframework.test.web.servlet.request.RequestPostProcessor adminJwt() {
         return jwt().jwt(token -> {
             token.claim("companyId", COMPANY_ID.toString());
             token.subject(ADMIN_USER_ID.toString());
             token.claim("role", "ADMIN");
         }).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor driverJwt() {
+        return jwt().jwt(token -> {
+            token.claim("companyId", COMPANY_ID.toString());
+            token.subject(UUID.randomUUID().toString());
+            token.claim("role", "DRIVER");
+        }).authorities(new SimpleGrantedAuthority("ROLE_DRIVER"));
     }
 }

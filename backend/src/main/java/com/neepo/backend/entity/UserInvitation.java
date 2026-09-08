@@ -92,6 +92,7 @@ public class UserInvitation {
     public String getEmail() { return email; }
     public UserRole getRole() { return role; }
     public Instant getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
     public Instant getAcceptedAt() { return acceptedAt; }
     public UUID getCreatedByUserId() { return createdByUserId; }
     public Instant getCreatedAt() { return createdAt; }

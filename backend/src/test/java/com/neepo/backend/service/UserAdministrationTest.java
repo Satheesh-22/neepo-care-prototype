@@ -145,4 +145,47 @@ class UserAdministrationTest {
                 .isInstanceOf(ResourceConflictException.class)
                 .hasMessageContaining("already been accepted");
     }
+
+    @Test
+    void dispatcherCannotInviteAdministrator() {
+        User dispatcher = userRepository.save(User.createForCompany(
+                companyId, "Dispatcher Alice", "disp-" + UUID.randomUUID() + "@test.com", "+15550109988", UserRole.DISPATCHER, "hashedPassword"
+        ));
+
+        CreateUserInvitationRequest inviteReq = new CreateUserInvitationRequest(
+                "New Admin", "newadmin-" + UUID.randomUUID() + "@test.com", "+15550107777", UserRole.ADMIN
+        );
+
+        assertThatThrownBy(() -> invitationService.inviteUser(
+                companyId, dispatcher.getId(), UserRole.DISPATCHER, UUID.randomUUID(), inviteReq
+        ))
+                .isInstanceOf(ResourceConflictException.class)
+                .hasMessageContaining("Dispatchers cannot invite or create administrators");
+    }
+
+    @Test
+    void rejectExpiredInvitation() {
+        User admin = userRepository.save(User.createForCompany(
+                companyId, "Admin Inviter 2", "inviter2-" + UUID.randomUUID() + "@test.com", "+15550109981", UserRole.ADMIN, "hashedPassword"
+        ));
+
+        CreateUserInvitationRequest inviteReq = new CreateUserInvitationRequest(
+                "Expiring Member", "expiring-" + UUID.randomUUID() + "@test.com", "+15550106666", UserRole.DRIVER
+        );
+        UserInvitationResponse invitation = invitationService.inviteUser(
+                companyId, admin.getId(), UserRole.ADMIN, UUID.randomUUID(), inviteReq
+        );
+
+        // Manually expire the invitation
+        invitationRepository.findById(invitation.id()).ifPresent(inv -> {
+            inv.setExpiresAt(java.time.Instant.now().minus(java.time.Duration.ofDays(1)));
+            invitationRepository.save(inv);
+        });
+
+        assertThatThrownBy(() -> invitationService.acceptInvitation(
+                new AcceptInvitationRequest(invitation.token(), "SecureNewPassword123!"), UUID.randomUUID()
+        ))
+                .isInstanceOf(ResourceConflictException.class)
+                .hasMessageContaining("expired");
+    }
 }
