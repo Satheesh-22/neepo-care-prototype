@@ -11,6 +11,8 @@ dist/
 coverage/
 playwright-report/
 test-results/
+qa/screenshots/*.png
+!qa/screenshots/.gitkeep
 
 .idea/
 .vscode/

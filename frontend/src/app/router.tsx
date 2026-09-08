@@ -12,7 +12,7 @@ import { ForbiddenPage } from "../pages/ForbiddenPage";
 import { LoginPage } from "../pages/LoginPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 
-function lazyWithRetry<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+function lazyWithRetry<T extends ComponentType<object>>(factory: () => Promise<{ default: T }>) {
   return lazy(() =>
     factory().catch((error) => {
       const isDynamicImportError =

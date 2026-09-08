@@ -1,8 +1,12 @@
 import { chromium } from "@playwright/test";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
-const targetDir = "C:\\Users\\Admin\\.gemini\\antigravity-ide\\brain\\93a51f30-d2b4-4383-8faf-b6a580e0d5f8";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const targetDir = process.env.SCREENSHOT_DIR || path.resolve(__dirname, "../qa/screenshots");
 if (!fs.existsSync(targetDir)) {
   fs.mkdirSync(targetDir, { recursive: true });
 }
@@ -13,7 +17,7 @@ async function capture() {
   // 1. Desktop Context
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 2 // High-DPI retina capture
+    deviceScaleFactor: 2 // High-DPI capture
   });
   const page = await context.newPage();
 
