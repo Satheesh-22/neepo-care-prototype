@@ -1,10 +1,13 @@
-import { chromium } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const require = createRequire(path.resolve(__dirname, "../frontend/package.json"));
+const { chromium } = require("@playwright/test");
 
 const targetDir = process.env.SCREENSHOT_DIR || path.resolve(__dirname, "../qa/screenshots");
 if (!fs.existsSync(targetDir)) {
