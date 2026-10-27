@@ -14,11 +14,13 @@ import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { neepoApi } from "../api";
 import { useAuthStore } from "../auth/authStore";
 import { RecoveryPlanComparison } from "../components/RecoveryPlanComparison";
 import { StatusPill } from "../components/StatusPill";
+import { TelemetryReplayScrubber } from "../components/TelemetryReplayScrubber";
 import { TripMap } from "../components/TripMap";
 
 export function TripWorkspacePage() {
@@ -43,6 +45,21 @@ export function TripWorkspacePage() {
     queryFn: () => neepoApi.getDecisionExplanation(tripId, session.accessToken),
     enabled: Boolean(tripId)
   });
+
+  const [selectedReplayIndex, setSelectedReplayIndex] = useState<number | null>(null);
+
+  const telemetryHistory = useQuery({
+    queryKey: ["telemetry-history", tripId],
+    queryFn: () => neepoApi.getTelemetryHistory(tripId, undefined, session.accessToken),
+    enabled: Boolean(tripId)
+  });
+
+  const totalPoints = telemetryHistory.data?.length ?? 0;
+  const replayIndex = selectedReplayIndex !== null
+    ? Math.min(selectedReplayIndex, Math.max(0, totalPoints - 1))
+    : Math.max(0, totalPoints - 1);
+
+  const activeTelemetryPoint = telemetryHistory.data?.[replayIndex] ?? null;
 
   const generate = useMutation({
     mutationFn: () => neepoApi.generateRecoveryPlans(tripId, session.accessToken),
@@ -112,8 +129,19 @@ export function TripWorkspacePage() {
         </Alert>
       )}
 
-      {/* Map Overview */}
-      <TripMap />
+      {/* Map Overview & High-Resolution Telemetry Replay Scrubber */}
+      <Stack spacing={2}>
+        <TripMap
+          activePoint={activeTelemetryPoint}
+          historyPoints={telemetryHistory.data ?? []}
+        />
+        <TelemetryReplayScrubber
+          points={telemetryHistory.data ?? []}
+          currentIndex={replayIndex}
+          onIndexChange={setSelectedReplayIndex}
+          isLoading={telemetryHistory.isPending}
+        />
+      </Stack>
 
       {/* Recovery Journey Timeline */}
       <Card sx={{ border: "1px solid #e2e8f0", bgcolor: "#ffffff" }}>

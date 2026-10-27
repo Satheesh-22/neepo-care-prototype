@@ -11,7 +11,7 @@
 - Authenticated, one-use WebSocket tickets and post-commit telemetry events: implemented
 - Adaptive telemetry policy, offline synchronization and reconnect de-duplication: implemented
 - PostgreSQL/PostGIS, Redis, Spring Boot and Nginx containers: healthy
-- Flyway: seven immutable ordered migrations (V1–V7), validated against clean ephemeral database and persistent development volume
+- Flyway: eight immutable ordered migrations (V1–V8), validated against clean ephemeral database and persistent development volume
 - Release automation, clean-database migration test, and GitHub Actions CI: implemented
 - Production readiness & deployment hardening: audited, benchmarked, and documented
 - Production operations & IaC manifests: implemented (Kubernetes manifests, External Secrets Operator, staging deployment CI/CD, disposable backup/restore drill, Prometheus alert rules, Grafana dashboard, zero-downtime rollback validation suite, hardware gateway bench prototype)
@@ -19,14 +19,16 @@
 
 ## Verification evidence
 
-Verified on 8 September 2026:
+Verified on 27 October 2026:
 
-- Backend `test`: 140 tests passed, 0 failures, 0 errors, 0 skipped
+- Backend `test`: 150 tests passed, 0 failures, 0 errors, 0 skipped
 - CARE-engine `test`: 117 tests passed, 0 failures, 0 errors, 0 skipped
-- Frontend: ESLint clean (0 warnings), 17 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
+- Frontend: ESLint clean (0 warnings), 27 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
+- High-Resolution Telemetry History & Route Replay (v1.1 P1 Milestone 1): implemented (`GET /api/v1/trips/{tripId}/telemetry/history`, `TelemetryReplayScrubber.tsx`, dynamic Leaflet vehicle tracking, breadcrumb trail polylines, overheating warning badges, and $1\times, 2\times, 5\times$ speed multipliers)
+- Multi-Channel Real-Time Alerting & Webhooks Engine (v1.1 P1 Milestone 2): implemented (`GET/POST /api/v1/notifications/channels`, `DELETE /api/v1/notifications/channels/{channelId}`, `POST /api/v1/notifications/channels/{channelId}/test`, `GET /api/v1/notifications/logs`, `NotificationSettingsModal.tsx`, HMAC-SHA256 signature verification `X-Neepo-Signature`, severity threshold suppression, secret masking, demo mock dispatches, Flyway V8 migration)
 - Web-page Style & Data Visualization: implemented (Design tokens & theme refinement, Dashboard operations & latency overview with sparklines, Telemetry gauges with thermal & cold-chain zones, interactive Leaflet route & incident map with detour lines, CARE multi-attribute decision comparison & timeline, and Demo Mode presentation controller)
 - Role-based Onboarding & Admin Pages: implemented (`/admin/company`, `/admin/users`, `/admin/drivers`, `/admin/drivers/new`, `/admin/vehicles`, `/admin/vehicles/new`, `/admin/assignments`, `/driver/profile`, `/invite/accept`, `/forbidden`)
-- Foundation validator (`scripts/validate-foundation.py`): passed (V1–V7 verified)
+- Foundation validator (`scripts/validate-foundation.py`): passed (V1–V8 verified)
 - Docker Compose configuration: valid
 - Frontend `/health`: HTTP 200
 - Backend `/actuator/health`: `UP`

@@ -3,17 +3,28 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Web-Page Style & Data Visualization Completed
+## Current Status: Milestone 1 & Milestone 2 (v1.1 P1) Completed
 
-The web-page style, visual hierarchy, dashboard operations telemetry, interactive Leaflet route map, CARE decision explainability comparisons, responsive layouts, accessibility, and demo presentation modes have been implemented and verified:
+Milestone 1 and Milestone 2 of the v1.1 roadmap have been implemented, integrated, and verified:
 
-1. **Design System Refinement**: `theme.ts` & `styles.css` with oceanic navy/teal contrast, micro-animations, accessible focus rings, and reduced-motion support.
-2. **Operations Dashboard Visualization**: `DashboardPage.tsx` & `MetricCard.tsx` with active trips, disruption cards, decision latency, evidence freshness, offline queue status, and sparklines.
-3. **Telemetry Visualization**: `TelemetryGauges.tsx` & `DriverTripPage.tsx` with engine overheating limits, cold-chain compliance bands (2°C–8°C), speed gauges, and adaptive policy interval displays.
-4. **Live Route & Incident Map**: `TripMap.tsx` with route polylines, detour tracks, vehicle heading, origin depot, incident point (106°C), safe stop hub, partner mechanic, and center-on-vehicle controls.
-5. **CARE Decision Visualization**: `RecoveryPlanComparison.tsx` & `TripWorkspacePage.tsx` with multi-dimensional scoring ($U = \text{Benefit} - \lambda\text{Risk} - \mu\text{Uncertainty}$), constraint compliance badges, decision journey timeline, and cryptographic hash evidence.
-6. **Accessible & Responsive Polish**: 320px–1920px responsiveness, keyboard navigation, and WCAG AA contrast.
-7. **Demo Presentation Mode**: `DemoModeBar.tsx` interactive controller for operator demonstrations and guided scenario testing.
+1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**:
+   - Added `GET /api/v1/trips/{tripId}/telemetry/history` with optional ISO-8601 bounds, limit clamping (1–2000), tenant isolation, and RBAC.
+   - Added `findHistory` to `TelemetryJdbcRepository` utilizing the `idx_telemetry_trip_recorded` composite index.
+   - Integrated `TelemetryReplayScrubber.tsx` with Play/Pause, step controls, $1\times, 2\times, 5\times$ speed multipliers, and thermal/cold-chain alert badges.
+   - Dynamic Leaflet vehicle tracking and historical breadcrumb trail polylines.
+
+2. **Multi-Channel Real-Time Alerting & Webhooks Engine (Milestone 2)**:
+   - Created Flyway migration `V8__create_alerting_and_notification_domain.sql` defining `notification_channels` and `notification_delivery_logs`.
+   - Implemented `NotificationAlertService` with HMAC-SHA256 signature verification (`X-Neepo-Signature`), severity hierarchy suppression (`LOW` < `MEDIUM` < `HIGH` < `CRITICAL`), secret masking, and test ping dispatching.
+   - Implemented `NotificationController` with RBAC (`ADMIN`, `DISPATCHER`) and multi-tenant isolation.
+   - Integrated `DisruptionNotificationEventListener` via Spring event publishing for post-commit disruption alert distribution.
+   - Created `NotificationSettingsModal.tsx` in frontend with channel management, test ping triggers, HMAC signature validation, and delivery audit log inspection.
+   - Verified 150/150 backend tests and 27/27 frontend tests passing cleanly.
+
+## Next Suggested Milestone
+
+1. **v1.1 Milestone 3 (P1): Cryptographic Audit & Compliance Evidence Exports**: Tamper-evident export engine generating SHA-256 digested audit packages (JSON-LD, CSV, and printable PDF) for cold-chain excursions, driver acknowledgments, and CARE plan acceptance history (FDA 21 CFR Part 11 & GDP compliance).
+2. **v1.1 Milestone 4 (P2): Fleet Reliability & Cost-Avoidance Analytics**: Materialized aggregate views and executive metrics tracking Mean Time to Recovery (MTTR), driver compliance rates, and estimated cost avoidance across chosen intervals.
 
 ## Required Verification & Benchmark Commands
 

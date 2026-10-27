@@ -60,4 +60,15 @@ describe("mock API boundary", () => {
     expect(started.status).toBe("IN_PROGRESS");
     expect(started.startedAt).toBeDefined();
   });
+
+  it("returns time-series telemetry history for replay", async () => {
+    const history = await mockApi.getTelemetryHistory(DEMO_TRIP_ID);
+    expect(history.length).toBeGreaterThanOrEqual(9);
+    expect(history[0].speedKph).toBe(0);
+    expect(history.some((pt) => (pt.engineTemperatureCelsius ?? 0) > 100)).toBe(true);
+
+    const filtered = await mockApi.getTelemetryHistory(DEMO_TRIP_ID, { limit: 3 });
+    expect(filtered).toHaveLength(3);
+  });
 });
+

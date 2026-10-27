@@ -141,3 +141,14 @@ SystemEventType:
   - REPLANNING_STARTED
   - REPLANNING_COMPLETED
   - TRIP_STATUS_CHANGED
+
+NotificationChannelType:
+  - WEBHOOK
+  - SMS
+  - WEBPUSH
+
+NotificationDeliveryStatus:
+  - DELIVERED
+  - SUPPRESSED_BY_SEVERITY
+  - FAILED
+

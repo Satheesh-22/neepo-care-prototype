@@ -27,3 +27,6 @@ erDiagram
     DISRUPTION_EVENT ||--o{ REPLANNING_CYCLE : triggers
     TRIP ||--o{ TELEMETRY_POLICY_DECISION : controls
     USER ||--o{ AUDIT_EVENT : performs
+    COMPANY ||--o{ NOTIFICATION_CHANNEL : configures
+    NOTIFICATION_CHANNEL ||--o{ NOTIFICATION_DELIVERY_LOG : logs
+

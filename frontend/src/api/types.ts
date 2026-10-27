@@ -1,4 +1,32 @@
-import type { ApiError, DecisionExplanation, RecoveryPlan, TelemetryObservation, TelemetryPolicyDecision, TelemetryPolicyRequest, Trip, User, UserRole, UUID } from "@contracts";
+import type {
+  ApiError,
+  CreateNotificationChannelRequest,
+  DecisionExplanation,
+  DisruptionSeverity,
+  NotificationChannel,
+  NotificationChannelType,
+  NotificationDeliveryLog,
+  NotificationDeliveryStatus,
+  NotificationTestResult,
+  RecoveryPlan,
+  TelemetryObservation,
+  TelemetryPolicyDecision,
+  TelemetryPolicyRequest,
+  Trip,
+  User,
+  UserRole,
+  UUID
+} from "@contracts";
+
+export type {
+  CreateNotificationChannelRequest,
+  DisruptionSeverity,
+  NotificationChannel,
+  NotificationChannelType,
+  NotificationDeliveryLog,
+  NotificationDeliveryStatus,
+  NotificationTestResult
+};
 
 export interface LoginRequest {
   email: string;
@@ -272,6 +300,26 @@ export interface AuditEventItem {
   createdAt: string;
 }
 
+export interface TelemetryHistoryPoint {
+  eventId: UUID;
+  recordedAt: string;
+  latitude: number;
+  longitude: number;
+  engineTemperatureCelsius?: number | null;
+  cargoTemperatureCelsius?: number | null;
+  speedKph?: number | null;
+  confidence: number;
+  observationStatus: "FRESH" | "AGING" | "EXPIRED" | "UNVERIFIED";
+  source: "SIMULATOR" | "DRIVER_DEVICE" | "VEHICLE_DEVICE";
+  networkState: "ONLINE" | "WEAK" | "OFFLINE" | "SYNCHRONIZING";
+}
+
+export interface TelemetryHistoryQueryOptions {
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
 export interface NeepoApi {
   login(request: LoginRequest): Promise<Session>;
   getTrip(tripId: UUID, accessToken: string): Promise<Trip>;
@@ -280,6 +328,7 @@ export interface NeepoApi {
   getDecisionExplanation(tripId: UUID, accessToken: string): Promise<DecisionExplanation | null>;
   generateRecoveryPlans(tripId: UUID, accessToken: string): Promise<readonly RecoveryPlan[]>;
   ingestTelemetry(observation: TelemetryObservation, accessToken: string): Promise<TelemetryAccepted>;
+  getTelemetryHistory(tripId: UUID, options?: TelemetryHistoryQueryOptions, accessToken?: string): Promise<readonly TelemetryHistoryPoint[]>;
   evaluateTelemetryPolicy(tripId: UUID, request: TelemetryPolicyRequest, accessToken: string): Promise<TelemetryPolicyDecision>;
   issueEventTicket(accessToken: string): Promise<WebSocketTicket>;
 
@@ -316,6 +365,12 @@ export interface NeepoApi {
   listAssignments(accessToken: string): Promise<readonly DriverVehicleAssignment[]>;
   createAssignment(input: CreateAssignmentInput, accessToken: string): Promise<DriverVehicleAssignment>;
   releaseAssignment(assignmentId: string, accessToken: string): Promise<DriverVehicleAssignment>;
+
+  listNotificationChannels(accessToken: string): Promise<readonly NotificationChannel[]>;
+  createNotificationChannel(input: CreateNotificationChannelRequest, accessToken: string): Promise<NotificationChannel>;
+  deleteNotificationChannel(channelId: string, accessToken: string): Promise<void>;
+  testNotificationChannel(channelId: string, accessToken: string): Promise<NotificationTestResult>;
+  listNotificationLogs(accessToken: string, limit?: number): Promise<readonly NotificationDeliveryLog[]>;
 }
 
 export class ApiClientError extends Error {

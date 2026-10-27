@@ -1,10 +1,18 @@
 package com.neepo.backend.repository;
 
+import com.neepo.backend.domain.NetworkState;
+import com.neepo.backend.domain.ObservationStatus;
+import com.neepo.backend.domain.TelemetrySource;
+import com.neepo.backend.dto.TelemetryHistoryItemResponse;
 import com.neepo.backend.dto.TelemetryObservationRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Repository
 public class TelemetryJdbcRepository {
@@ -45,5 +53,56 @@ public class TelemetryJdbcRepository {
             return statement;
         });
         return inserted == 1;
+    }
+
+    public List<TelemetryHistoryItemResponse> findHistory(UUID tripId, Instant from, Instant to, int limit) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT event_id, recorded_at,
+                       ST_Y(location::geometry) AS latitude,
+                       ST_X(location::geometry) AS longitude,
+                       engine_temperature_c, cargo_temperature_c, speed_kph, confidence,
+                       observation_status, source, network_state
+                FROM telemetry_observations
+                WHERE trip_id = ?
+                """);
+        List<Object> params = new ArrayList<>();
+        params.add(tripId);
+
+        if (from != null) {
+            sql.append(" AND recorded_at >= ?");
+            params.add(Timestamp.from(from));
+        }
+        if (to != null) {
+            sql.append(" AND recorded_at <= ?");
+            params.add(Timestamp.from(to));
+        }
+
+        int effectiveLimit = Math.max(1, Math.min(limit <= 0 ? 500 : limit, 2000));
+        sql.append(" ORDER BY recorded_at ASC LIMIT ?");
+        params.add(effectiveLimit);
+
+        return jdbc.query(connection -> {
+            var statement = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));
+            }
+            return statement;
+        }, (rs, rowNum) -> {
+            Timestamp recordedTs = rs.getTimestamp("recorded_at");
+            Instant recordedAt = recordedTs != null ? recordedTs.toInstant() : null;
+            return new TelemetryHistoryItemResponse(
+                    rs.getObject("event_id", UUID.class),
+                    recordedAt,
+                    rs.getBigDecimal("latitude"),
+                    rs.getBigDecimal("longitude"),
+                    rs.getBigDecimal("engine_temperature_c"),
+                    rs.getBigDecimal("cargo_temperature_c"),
+                    rs.getBigDecimal("speed_kph"),
+                    rs.getBigDecimal("confidence"),
+                    ObservationStatus.valueOf(rs.getString("observation_status")),
+                    TelemetrySource.valueOf(rs.getString("source")),
+                    NetworkState.valueOf(rs.getString("network_state"))
+            );
+        });
     }
 }

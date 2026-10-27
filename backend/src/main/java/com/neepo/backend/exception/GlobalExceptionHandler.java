@@ -64,6 +64,14 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", exception.getMessage(), List.of(), request);
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(
+            org.springframework.security.access.AccessDeniedException exception,
+            HttpServletRequest request
+    ) {
+        return error(HttpStatus.FORBIDDEN, "FORBIDDEN", "You do not have permission to perform this operation.", List.of(), request);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleBodyValidation(
             MethodArgumentNotValidException exception,

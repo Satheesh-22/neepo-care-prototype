@@ -8,6 +8,8 @@ import com.neepo.backend.exception.ResourceNotFoundException;
 import com.neepo.backend.repository.DisruptionJdbcRepository;
 import com.neepo.backend.repository.TripRepository;
 import com.neepo.contracts.DisruptionEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,7 @@ public class DisruptionService {
     private final DisruptionJdbcRepository disruptions;
     private final ObjectMapper objectMapper;
     private final Clock clock;
+    private final ApplicationEventPublisher events;
 
     public DisruptionService(
             TripRepository trips,
@@ -36,10 +39,22 @@ public class DisruptionService {
             ObjectMapper objectMapper,
             Clock clock
     ) {
+        this(trips, disruptions, objectMapper, clock, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public DisruptionService(
+            TripRepository trips,
+            DisruptionJdbcRepository disruptions,
+            ObjectMapper objectMapper,
+            Clock clock,
+            @Nullable ApplicationEventPublisher events
+    ) {
         this.trips = trips;
         this.disruptions = disruptions;
         this.objectMapper = objectMapper;
         this.clock = clock;
+        this.events = events;
     }
 
     @Transactional
@@ -81,6 +96,9 @@ public class DisruptionService {
                 result.id()
         );
         trip.markDisrupted();
+        if (events != null) {
+            events.publishEvent(new DisruptionReportedEvent(companyId, result));
+        }
         return result;
     }
 

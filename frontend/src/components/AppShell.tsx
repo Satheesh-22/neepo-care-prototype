@@ -5,6 +5,7 @@ import DashboardRounded from "@mui/icons-material/DashboardRounded";
 import DirectionsCarRounded from "@mui/icons-material/DirectionsCarRounded";
 import LocalShippingRounded from "@mui/icons-material/LocalShippingRounded";
 import LogoutRounded from "@mui/icons-material/LogoutRounded";
+import NotificationsRounded from "@mui/icons-material/NotificationsRounded";
 import PeopleRounded from "@mui/icons-material/PeopleRounded";
 import PersonPinRounded from "@mui/icons-material/PersonPinRounded";
 import SensorsRounded from "@mui/icons-material/SensorsRounded";
@@ -13,6 +14,8 @@ import WifiOffRounded from "@mui/icons-material/WifiOffRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -23,6 +26,7 @@ import { DEMO_TRIP_ID } from "../api/mockApi";
 import { useAuthStore } from "../auth/authStore";
 import { useOfflineQueue } from "../offline/useOfflineQueue";
 import { DemoModeBar } from "./DemoModeBar";
+import { NotificationSettingsModal } from "./NotificationSettingsModal";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState(navigator.onLine);
@@ -31,6 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { pendingCount, synchronizing, synchronize } = useOfflineQueue();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
@@ -267,6 +272,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Box>
               </Box>
 
+              {role !== "DRIVER" && (
+                <Tooltip title="Alerting & Webhook Channels">
+                  <IconButton
+                    id="btn-open-notifications"
+                    size="small"
+                    onClick={() => setNotificationsOpen(true)}
+                    sx={{
+                      color: "rgba(255, 255, 255, 0.8)",
+                      bgcolor: "rgba(255, 255, 255, 0.08)",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      "&:hover": { bgcolor: "rgba(255, 255, 255, 0.15)", color: "#ffffff" }
+                    }}
+                  >
+                    <NotificationsRounded sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+
               <Button
                 variant="outlined"
                 color="inherit"
@@ -293,6 +316,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Stack>
         </Container>
       </Box>
+
+      {/* Notification Settings Modal */}
+      <NotificationSettingsModal
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+      />
 
       {/* Main Content Area */}
       <Container component="main" maxWidth="xl" sx={{ py: { xs: 2.5, md: 4 }, flex: 1 }}>

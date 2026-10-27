@@ -389,3 +389,49 @@ export interface ApiError {
 }
 
 export type ApiResult<T> = ApiSuccess<T> | ApiError;
+
+export type NotificationChannelType = "WEBHOOK" | "SMS" | "WEBPUSH";
+export type NotificationDeliveryStatus = "DELIVERED" | "SUPPRESSED_BY_SEVERITY" | "FAILED";
+
+export interface NotificationChannel {
+  readonly id: UUID;
+  readonly companyId: UUID;
+  readonly name: string;
+  readonly channelType: NotificationChannelType;
+  readonly targetEndpoint: string;
+  readonly secretKey: string;
+  readonly minimumSeverity: DisruptionSeverity;
+  readonly active: boolean;
+  readonly createdAt: IsoInstant;
+}
+
+export interface CreateNotificationChannelRequest {
+  readonly name: string;
+  readonly channelType: NotificationChannelType;
+  readonly targetEndpoint: string;
+  readonly secretKey?: string;
+  readonly minimumSeverity: DisruptionSeverity;
+  readonly active?: boolean;
+}
+
+export interface NotificationTestResult {
+  readonly channelId: UUID;
+  readonly status: NotificationDeliveryStatus;
+  readonly message: string;
+  readonly signature: string;
+  readonly payload: string;
+}
+
+export interface NotificationDeliveryLog {
+  readonly id: UUID;
+  readonly channelId: UUID;
+  readonly companyId: UUID;
+  readonly disruptionEventId?: UUID | null;
+  readonly disruptionType: string;
+  readonly severity: DisruptionSeverity;
+  readonly status: NotificationDeliveryStatus;
+  readonly signature: string;
+  readonly payload: string;
+  readonly errorMessage?: string | null;
+  readonly deliveredAt: IsoInstant;
+}

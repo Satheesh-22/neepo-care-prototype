@@ -1,5 +1,6 @@
 package com.neepo.backend.service;
 
+import com.neepo.backend.dto.TelemetryHistoryItemResponse;
 import com.neepo.backend.dto.TelemetryAcceptedResponse;
 import com.neepo.backend.dto.TelemetryObservationRequest;
 import com.neepo.backend.entity.Trip;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -47,4 +50,9 @@ public class TelemetryService {
         }
         return new TelemetryAcceptedResponse(observation.eventId(), !inserted, acceptedAt);
     }
+
+    public List<TelemetryHistoryItemResponse> getHistory(UUID tripId, Instant from, Instant to, int limit) {
+        return telemetry.findHistory(tripId, from, to, limit);
+    }
 }
+

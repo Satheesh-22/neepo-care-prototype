@@ -1,10 +1,15 @@
 import type { DecisionExplanation, PlanEvaluation, RecoveryPlan, Trip, User, UserRole } from "@contracts";
 import type {
   CompanyProfile,
+  CreateNotificationChannelRequest,
   DriverDetailed,
   DriverVehicleAssignment,
   LoginRequest,
   NeepoApi,
+  NotificationChannel,
+  NotificationDeliveryLog,
+  NotificationTestResult,
+  TelemetryHistoryPoint,
   UserAdminItem,
   VehicleDetailed
 } from "./types";
@@ -105,6 +110,127 @@ const explanation: DecisionExplanation = {
   deterministicTieBreakRule: "FINAL_UTILITY_DESC_THEN_PLAN_UUID_ASC",
   explainedAt: now
 };
+
+const demoTelemetryHistory: TelemetryHistoryPoint[] = [
+  {
+    eventId: "00000000-0000-4000-8800-000000000001",
+    recordedAt: "2026-08-24T12:45:00Z",
+    latitude: 12.9716,
+    longitude: 77.5946,
+    engineTemperatureCelsius: 82.0,
+    cargoTemperatureCelsius: 4.0,
+    speedKph: 0.0,
+    confidence: 0.99,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000002",
+    recordedAt: "2026-08-24T12:47:00Z",
+    latitude: 12.9820,
+    longitude: 77.5950,
+    engineTemperatureCelsius: 85.5,
+    cargoTemperatureCelsius: 4.0,
+    speedKph: 38.4,
+    confidence: 0.99,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000003",
+    recordedAt: "2026-08-24T12:49:00Z",
+    latitude: 12.9940,
+    longitude: 77.5955,
+    engineTemperatureCelsius: 88.2,
+    cargoTemperatureCelsius: 4.1,
+    speedKph: 46.1,
+    confidence: 0.98,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000004",
+    recordedAt: "2026-08-24T12:51:00Z",
+    latitude: 13.0060,
+    longitude: 77.5960,
+    engineTemperatureCelsius: 91.8,
+    cargoTemperatureCelsius: 4.1,
+    speedKph: 52.0,
+    confidence: 0.98,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000005",
+    recordedAt: "2026-08-24T12:53:00Z",
+    latitude: 13.0180,
+    longitude: 77.5965,
+    engineTemperatureCelsius: 95.4,
+    cargoTemperatureCelsius: 4.1,
+    speedKph: 48.7,
+    confidence: 0.97,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000006",
+    recordedAt: "2026-08-24T12:55:00Z",
+    latitude: 13.0270,
+    longitude: 77.5968,
+    engineTemperatureCelsius: 101.5,
+    cargoTemperatureCelsius: 4.2,
+    speedKph: 41.2,
+    confidence: 0.97,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000007",
+    recordedAt: "2026-08-24T12:57:00Z",
+    latitude: 13.0320,
+    longitude: 77.5969,
+    engineTemperatureCelsius: 104.8,
+    cargoTemperatureCelsius: 4.2,
+    speedKph: 24.5,
+    confidence: 0.96,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000008",
+    recordedAt: "2026-08-24T12:59:00Z",
+    latitude: 13.0358,
+    longitude: 77.5970,
+    engineTemperatureCelsius: 106.2,
+    cargoTemperatureCelsius: 4.2,
+    speedKph: 0.0,
+    confidence: 0.98,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  },
+  {
+    eventId: "00000000-0000-4000-8800-000000000009",
+    recordedAt: "2026-08-24T13:00:00Z",
+    latitude: 13.0358,
+    longitude: 77.5970,
+    engineTemperatureCelsius: 105.8,
+    cargoTemperatureCelsius: 4.3,
+    speedKph: 0.0,
+    confidence: 0.98,
+    observationStatus: "FRESH",
+    source: "VEHICLE_DEVICE",
+    networkState: "ONLINE"
+  }
+];
+
 
 const demoUser = (email: string, role: UserRole): User => ({
   id: "00000000-0000-4000-8100-000000000002",
@@ -251,6 +377,56 @@ const mockAssignments: DriverVehicleAssignment[] = [
   }
 ];
 
+const mockNotificationChannels: NotificationChannel[] = [
+  {
+    id: "00000000-0000-4000-8500-000000000001",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    name: "Operations Center Slack Webhook",
+    channelType: "WEBHOOK",
+    targetEndpoint: "https://hooks.slack.com/services/NEEPO/OPS/ALERT_CHANNEL",
+    secretKey: "neep...2026",
+    minimumSeverity: "MEDIUM",
+    active: true,
+    createdAt: "2026-08-24T10:00:00Z"
+  },
+  {
+    id: "00000000-0000-4000-8500-000000000002",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    name: "Fleet Emergency PagerDuty",
+    channelType: "WEBHOOK",
+    targetEndpoint: "https://events.pagerduty.com/v2/enqueue",
+    secretKey: "neep...2026",
+    minimumSeverity: "HIGH",
+    active: true,
+    createdAt: "2026-08-24T10:30:00Z"
+  }
+];
+
+const mockNotificationLogs: NotificationDeliveryLog[] = [
+  {
+    id: "00000000-0000-4000-8500-000000000101",
+    channelId: "00000000-0000-4000-8500-000000000001",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    disruptionType: "SYSTEM_STARTUP",
+    severity: "LOW",
+    status: "DELIVERED",
+    signature: "a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890",
+    payload: '{"event":"SYSTEM_STARTUP","status":"READY"}',
+    deliveredAt: "2026-08-24T12:00:00Z"
+  },
+  {
+    id: "00000000-0000-4000-8500-000000000102",
+    channelId: "00000000-0000-4000-8500-000000000001",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    disruptionType: "VEHICLE_OVERHEATING",
+    severity: "HIGH",
+    status: "DELIVERED",
+    signature: "7e5d89f023b1c4e98f01a34567890abcdef1234567890abcdef1234567890ab",
+    payload: '{"event":"DISRUPTION_DETECTED","type":"VEHICLE_OVERHEATING","severity":"HIGH","tempCelsius":106.2}',
+    deliveredAt: "2026-08-24T12:59:30Z"
+  }
+];
+
 const delay = async () =>
   new Promise((resolve) => window.setTimeout(resolve, typeof window !== "undefined" && (window as unknown as { __VITEST_ENVIRONMENT__?: unknown }).__VITEST_ENVIRONMENT__ ? 0 : 80));
 const acceptedTelemetry = new Set<string>();
@@ -297,6 +473,21 @@ export const mockApi: NeepoApi = {
     const duplicate = acceptedTelemetry.has(observation.eventId);
     acceptedTelemetry.add(observation.eventId);
     return { eventId: observation.eventId, duplicate, acceptedAt: new Date().toISOString() };
+  },
+  async getTelemetryHistory(tripId, options) {
+    await delay();
+    if (tripId !== DEMO_TRIP_ID) return [];
+    let items = demoTelemetryHistory;
+    if (options?.from) {
+      items = items.filter((pt) => pt.recordedAt >= options.from!);
+    }
+    if (options?.to) {
+      items = items.filter((pt) => pt.recordedAt <= options.to!);
+    }
+    if (options?.limit && options.limit > 0) {
+      items = items.slice(0, options.limit);
+    }
+    return items;
   },
   async evaluateTelemetryPolicy(tripId, request) {
     await delay();
@@ -638,5 +829,74 @@ export const mockApi: NeepoApi = {
       return found;
     }
     throw new Error("Assignment not found");
+  },
+
+  // Notification Channels & Alerting
+  async listNotificationChannels() {
+    await delay();
+    return mockNotificationChannels;
+  },
+  async createNotificationChannel(input: CreateNotificationChannelRequest) {
+    await delay();
+    const maskedSecret = input.secretKey
+      ? input.secretKey.length > 8
+        ? `${input.secretKey.substring(0, 4)}...${input.secretKey.substring(input.secretKey.length - 4)}`
+        : "********"
+      : "whse...2026";
+    const channel: NotificationChannel = {
+      id: crypto.randomUUID(),
+      companyId: mockCompany.id,
+      name: input.name,
+      channelType: input.channelType,
+      targetEndpoint: input.targetEndpoint,
+      secretKey: maskedSecret,
+      minimumSeverity: input.minimumSeverity,
+      active: input.active ?? true,
+      createdAt: new Date().toISOString()
+    };
+    mockNotificationChannels.unshift(channel);
+    return channel;
+  },
+  async deleteNotificationChannel(channelId: string) {
+    await delay();
+    const idx = mockNotificationChannels.findIndex((c) => c.id === channelId);
+    if (idx >= 0) mockNotificationChannels.splice(idx, 1);
+  },
+  async testNotificationChannel(channelId: string) {
+    await delay();
+    const channel = mockNotificationChannels.find((c) => c.id === channelId);
+    if (!channel) throw new Error("Notification channel not found");
+    const payload = JSON.stringify({
+      event: "TEST_NOTIFICATION",
+      channelId,
+      channelName: channel.name,
+      timestamp: new Date().toISOString(),
+      message: "NEEPO-CARE test notification ping"
+    });
+    const signature = "mock_hmac_sha256_" + crypto.randomUUID().replace(/-/g, "").substring(0, 32);
+    const result: NotificationTestResult = {
+      channelId,
+      status: "DELIVERED",
+      message: "Test notification ping dispatched and signed successfully",
+      signature,
+      payload
+    };
+    mockNotificationLogs.unshift({
+      id: crypto.randomUUID(),
+      channelId,
+      companyId: mockCompany.id,
+      disruptionType: "TEST_PING",
+      severity: channel.minimumSeverity,
+      status: "DELIVERED",
+      signature,
+      payload,
+      deliveredAt: new Date().toISOString()
+    });
+    return result;
+  },
+  async listNotificationLogs(_token: string, limit = 50) {
+    await delay();
+    return mockNotificationLogs.slice(0, limit);
   }
 };
+

@@ -81,3 +81,9 @@ GiST indexes cover routes, providers, safe stops and telemetry locations. B-tree
 ## Migration policy
 
 Never edit a Flyway migration after it has been applied outside disposable local development. Add a new ordered migration and document its contract impact. Seed migration V4 is for the prototype demonstration; production deployment must separate or disable demo data.
+
+## Notification channels and delivery logs
+
+- `notification_channels`: Configures tenant webhooks, SMS, and web-push endpoints with encrypted/hashed HMAC-SHA256 secrets, minimum severity thresholds, and tenant isolation.
+- `notification_delivery_logs`: Append-only audit log tracking every alert dispatch, suppression by severity, delivery outcome, signature header, and payload timestamp.
+

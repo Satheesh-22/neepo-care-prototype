@@ -9,6 +9,7 @@ import com.neepo.backend.entity.RouteReference;
 import com.neepo.backend.entity.Trip;
 import com.neepo.backend.entity.Vehicle;
 import com.neepo.backend.repository.*;
+import com.neepo.backend.service.TelemetryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +18,20 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,6 +52,7 @@ class TripControllerTest {
     @Autowired CargoRepository cargo;
     @Autowired DriverRepository drivers;
     @Autowired VehicleRepository vehicles;
+    @MockitoBean TelemetryService telemetry;
 
     private Vehicle vehicle;
     private Driver driver;
@@ -150,6 +158,50 @@ class TripControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("FORBIDDEN"));
     }
+
+    @Test
+    void canRetrieveTelemetryHistoryForAuthorizedTrip() throws Exception {
+        Trip assignedTrip = trips.save(Trip.create(
+                COMPANY_ID, vehicle.getId(), driver.getId(), shipment.getId(), route.getId(),
+                "TRIP-HISTORY-TEST", Instant.now().plus(2, ChronoUnit.DAYS), 60, 30
+        ));
+
+        when(telemetry.getHistory(eq(assignedTrip.getId()), any(), any(), eq(500)))
+                .thenReturn(List.of(
+                        new com.neepo.backend.dto.TelemetryHistoryItemResponse(
+                                UUID.randomUUID(), Instant.now(), new BigDecimal("13.0358"), new BigDecimal("77.5970"),
+                                new BigDecimal("106.2"), new BigDecimal("4.0"), new BigDecimal("0.0"),
+                                new BigDecimal("0.98"), com.neepo.backend.domain.ObservationStatus.FRESH,
+                                com.neepo.backend.domain.TelemetrySource.VEHICLE_DEVICE, com.neepo.backend.domain.NetworkState.ONLINE
+                        )
+                ));
+
+        mockMvc.perform(get("/api/v1/trips/{id}/telemetry/history", assignedTrip.getId())
+                        .with(dispatcher(COMPANY_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].engineTemperatureCelsius").value(106.2));
+
+        mockMvc.perform(get("/api/v1/trips/{id}/telemetry/history", assignedTrip.getId())
+                        .with(driver(driver.getUserId(), COMPANY_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray());
+
+        mockMvc.perform(get("/api/v1/trips/{id}/telemetry/history", assignedTrip.getId())
+                        .with(dispatcher(OTHER_COMPANY_ID)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("TRIP_NOT_FOUND"));
+
+        Driver otherDriver = drivers.save(Driver.create(
+                COMPANY_ID, UUID.randomUUID(), "DL-HIST-OTHER", 540
+        ));
+        mockMvc.perform(get("/api/v1/trips/{id}/telemetry/history", assignedTrip.getId())
+                        .with(driver(otherDriver.getUserId(), COMPANY_ID)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("TRIP_NOT_FOUND"));
+    }
+
 
     private org.springframework.test.web.servlet.request.RequestPostProcessor dispatcher(UUID companyId) {
         return jwt().jwt(token -> token.claim("companyId", companyId.toString()))

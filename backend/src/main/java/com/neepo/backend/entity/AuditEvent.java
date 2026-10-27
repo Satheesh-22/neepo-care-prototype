@@ -47,7 +47,7 @@ public class AuditEvent {
     }
 
     public static AuditEvent create(UUID traceId, UUID actorUserId, String eventType,
-                                    String aggregateType, UUID aggregateId, Instant occurredAt, String detailsJson) {
+            String aggregateType, UUID aggregateId, Instant occurredAt, String detailsJson) {
         AuditEvent event = new AuditEvent();
         event.traceId = traceId;
         event.actorUserId = actorUserId;

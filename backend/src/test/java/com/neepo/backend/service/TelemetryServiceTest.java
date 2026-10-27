@@ -83,6 +83,30 @@ class TelemetryServiceTest {
                 && updated.occurredAt().equals(NOW)));
     }
 
+    @Test
+    void delegatesHistoryQueryToRepository() {
+        TripRepository trips = mock(TripRepository.class);
+        TelemetryJdbcRepository telemetry = mock(TelemetryJdbcRepository.class);
+        ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
+        Instant from = NOW.minusSeconds(3600);
+        Instant to = NOW;
+        var expected = java.util.List.of(
+                new com.neepo.backend.dto.TelemetryHistoryItemResponse(
+                        UUID.randomUUID(), NOW, new BigDecimal("13.0358"), new BigDecimal("77.5970"),
+                        new BigDecimal("106.2"), new BigDecimal("4.0"), new BigDecimal("0.0"),
+                        new BigDecimal("0.98"), ObservationStatus.FRESH,
+                        TelemetrySource.VEHICLE_DEVICE, NetworkState.ONLINE
+                )
+        );
+        when(telemetry.findHistory(TRIP_ID, from, to, 100)).thenReturn(expected);
+
+        var result = new TelemetryService(trips, telemetry, Clock.fixed(NOW, ZoneOffset.UTC), events)
+                .getHistory(TRIP_ID, from, to, 100);
+
+        assertEquals(expected, result);
+        verify(telemetry).findHistory(TRIP_ID, from, to, 100);
+    }
+
     private TelemetryObservationRequest observation(UUID vehicleId) {
         return new TelemetryObservationRequest(UUID.randomUUID(), TRIP_ID, vehicleId,
                 NOW.minusSeconds(5), NOW, NOW.plusSeconds(60),

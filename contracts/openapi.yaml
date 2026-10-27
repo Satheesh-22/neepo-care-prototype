@@ -23,6 +23,7 @@ tags:
   - name: Recovery
   - name: Decisions
   - name: Metrics
+  - name: Notifications
 
 paths:
   /auth/login:
@@ -382,6 +383,47 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
 
+  /trips/{tripId}/telemetry/history:
+    parameters:
+      - $ref: '#/components/parameters/TripId'
+    get:
+      tags: [Telemetry, Trips]
+      operationId: getTripTelemetryHistory
+      x-implementation-status: implemented
+      parameters:
+        - name: from
+          in: query
+          required: false
+          description: UTC ISO-8601 lower bound timestamp
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          description: UTC ISO-8601 upper bound timestamp
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of breadcrumb observations to return (default 500, max 2000)
+          schema:
+            type: integer
+            default: 500
+            minimum: 1
+            maximum: 2000
+      responses:
+        '200':
+          description: Chronological telemetry breadcrumb history for trip
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryHistorySuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /telemetry:
     post:
       tags: [Telemetry]
@@ -561,6 +603,106 @@ paths:
               schema:
                 $ref: '#/components/schemas/TripMetricsSuccessResponse'
 
+  /notifications/channels:
+    get:
+      tags: [Notifications]
+      operationId: getNotificationChannels
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of configured notification channels for company
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationChannelListSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Notifications]
+      operationId: createNotificationChannel
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationChannelRequest'
+      responses:
+        '201':
+          description: Notification channel created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationChannelSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /notifications/channels/{channelId}:
+    delete:
+      tags: [Notifications]
+      operationId: deleteNotificationChannel
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ChannelId'
+      responses:
+        '204':
+          description: Notification channel deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /notifications/channels/{channelId}/test:
+    post:
+      tags: [Notifications]
+      operationId: testNotificationChannel
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ChannelId'
+      responses:
+        '200':
+          description: Test alert ping dispatched and signed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTestResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /notifications/logs:
+    get:
+      tags: [Notifications]
+      operationId: getNotificationDeliveryLogs
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Chronological list of notification delivery attempts and HMAC signatures
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationDeliveryLogListSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -569,6 +711,13 @@ components:
       bearerFormat: JWT
 
   parameters:
+    ChannelId:
+      name: channelId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     UserId:
       name: userId
       in: path
@@ -1693,6 +1842,65 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/TripMetrics'
+    TelemetryHistoryItem:
+      type: object
+      required:
+        - eventId
+        - recordedAt
+        - latitude
+        - longitude
+        - confidence
+        - observationStatus
+        - source
+        - networkState
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        recordedAt:
+          type: string
+          format: date-time
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        engineTemperatureCelsius:
+          type: number
+          nullable: true
+        cargoTemperatureCelsius:
+          type: number
+          nullable: true
+        speedKph:
+          type: number
+          minimum: 0
+          nullable: true
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        observationStatus:
+          type: string
+          enum: [FRESH, AGING, EXPIRED, UNVERIFIED]
+        source:
+          type: string
+          enum: [SIMULATOR, DRIVER_DEVICE, VEHICLE_DEVICE]
+        networkState:
+          type: string
+          enum: [ONLINE, WEAK, OFFLINE, SYNCHRONIZING]
+    TelemetryHistorySuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/TelemetryHistoryItem'
 
     ApiErrorResponse:
       type: object
@@ -1725,3 +1933,154 @@ components:
         traceId:
           type: string
           format: uuid
+
+    NotificationChannelType:
+      type: string
+      enum: [WEBHOOK, SMS, WEBPUSH]
+
+    NotificationDeliveryStatus:
+      type: string
+      enum: [DELIVERED, SUPPRESSED_BY_SEVERITY, FAILED]
+
+    NotificationChannel:
+      type: object
+      required: [id, companyId, name, channelType, targetEndpoint, secretKey, minimumSeverity, active, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        channelType:
+          $ref: '#/components/schemas/NotificationChannelType'
+        targetEndpoint:
+          type: string
+        secretKey:
+          type: string
+          description: Masked secret key representation
+        minimumSeverity:
+          $ref: '#/components/schemas/DisruptionSeverity'
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateNotificationChannelRequest:
+      type: object
+      required: [name, channelType, targetEndpoint, minimumSeverity]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        channelType:
+          $ref: '#/components/schemas/NotificationChannelType'
+        targetEndpoint:
+          type: string
+          minLength: 5
+          maxLength: 500
+        secretKey:
+          type: string
+          minLength: 8
+          maxLength: 255
+          description: Optional HMAC signing secret key; auto-generated if omitted
+        minimumSeverity:
+          $ref: '#/components/schemas/DisruptionSeverity'
+        active:
+          type: boolean
+          default: true
+
+    NotificationChannelSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/NotificationChannel'
+
+    NotificationChannelListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/NotificationChannel'
+
+    NotificationTestResult:
+      type: object
+      required: [channelId, status, message, signature, payload]
+      properties:
+        channelId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/NotificationDeliveryStatus'
+        message:
+          type: string
+        signature:
+          type: string
+        payload:
+          type: string
+
+    NotificationTestResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/NotificationTestResult'
+
+    NotificationDeliveryLog:
+      type: object
+      required: [id, channelId, companyId, disruptionType, severity, status, signature, payload, deliveredAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        channelId:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        disruptionEventId:
+          type: string
+          format: uuid
+          nullable: true
+        disruptionType:
+          type: string
+        severity:
+          $ref: '#/components/schemas/DisruptionSeverity'
+        status:
+          $ref: '#/components/schemas/NotificationDeliveryStatus'
+        signature:
+          type: string
+        payload:
+          type: string
+        errorMessage:
+          type: string
+          nullable: true
+        deliveredAt:
+          type: string
+          format: date-time
+
+    NotificationDeliveryLogListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/NotificationDeliveryLog'
+

@@ -206,6 +206,7 @@ expected_migrations = [
     "V5__add_user_credentials.sql",
     "V6__correct_demo_user_credentials.sql",
     "V7__create_onboarding_and_administration_domain.sql",
+    "V8__create_alerting_and_notification_domain.sql",
 ]
 if migrations != expected_migrations:
     fail(f"unexpected Flyway migration order: {migrations}")

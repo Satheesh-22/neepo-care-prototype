@@ -3,6 +3,7 @@ import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import CloudOffRounded from "@mui/icons-material/CloudOffRounded";
 import LocalShippingRounded from "@mui/icons-material/LocalShippingRounded";
+import NotificationsActiveRounded from "@mui/icons-material/NotificationsActiveRounded";
 import RouteRounded from "@mui/icons-material/RouteRounded";
 import SensorsRounded from "@mui/icons-material/SensorsRounded";
 import ShieldRounded from "@mui/icons-material/ShieldRounded";
@@ -25,10 +26,13 @@ import { neepoApi } from "../api";
 import { DEMO_TRIP_ID } from "../api/mockApi";
 import { useAuthStore } from "../auth/authStore";
 import { MetricCard } from "../components/MetricCard";
+import { NotificationSettingsModal } from "../components/NotificationSettingsModal";
 import { StatusPill } from "../components/StatusPill";
 import { useOfflineQueue } from "../offline/useOfflineQueue";
+import { useState } from "react";
 
 export function DashboardPage() {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const session = useAuthStore((state) => state.session)!;
   const { pendingCount } = useOfflineQueue();
 
@@ -296,16 +300,29 @@ export function DashboardPage() {
                   </Button>
 
                   {!isDriver && (
-                    <Button
-                      component={Link}
-                      to={`/simulator/trips/${trip.data.id}`}
-                      variant="outlined"
-                      size="large"
-                      startIcon={<SensorsRounded />}
-                      sx={{ py: 1.2, borderRadius: 3 }}
-                    >
-                      Telemetry Simulator
-                    </Button>
+                    <>
+                      <Button
+                        component={Link}
+                        to={`/simulator/trips/${trip.data.id}`}
+                        variant="outlined"
+                        size="large"
+                        startIcon={<SensorsRounded />}
+                        sx={{ py: 1.2, borderRadius: 3 }}
+                      >
+                        Telemetry Simulator
+                      </Button>
+
+                      <Button
+                        id="btn-dashboard-notifications"
+                        variant="text"
+                        size="large"
+                        startIcon={<NotificationsActiveRounded />}
+                        onClick={() => setNotificationsOpen(true)}
+                        sx={{ py: 1.1, borderRadius: 3, color: "text.secondary" }}
+                      >
+                        Alerts & Webhooks
+                      </Button>
+                    </>
                   )}
                 </Stack>
               </Stack>
@@ -313,6 +330,12 @@ export function DashboardPage() {
           </Card>
         )}
       </Box>
+
+      {/* Notification Settings Modal */}
+      <NotificationSettingsModal
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+      />
     </Stack>
   );
 }

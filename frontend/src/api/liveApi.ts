@@ -53,6 +53,16 @@ export const liveApi: NeepoApi = {
     headers: authorized(token),
     body: JSON.stringify(observation)
   }),
+  getTelemetryHistory: (tripId, options, token) => {
+    const params = new URLSearchParams();
+    if (options?.from) params.set("from", options.from);
+    if (options?.to) params.set("to", options.to);
+    if (options?.limit) params.set("limit", String(options.limit));
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request(`/trips/${tripId}/telemetry/history${qs}`, {
+      headers: token ? authorized(token) : undefined
+    });
+  },
   evaluateTelemetryPolicy: (tripId, policy, token) => request(`/trips/${tripId}/telemetry-policy`, {
     method: "POST",
     headers: authorized(token),
@@ -172,5 +182,25 @@ export const liveApi: NeepoApi = {
   releaseAssignment: (assignmentId, token) => request(`/assignments/${assignmentId}/release`, {
     method: "POST",
     headers: authorized(token)
+  }),
+
+  // Notification Channels & Alerting
+  listNotificationChannels: (token) => request("/notifications/channels", { headers: authorized(token) }),
+  createNotificationChannel: (input, token) => request("/notifications/channels", {
+    method: "POST",
+    headers: authorized(token),
+    body: JSON.stringify(input)
+  }),
+  deleteNotificationChannel: (channelId, token) => request(`/notifications/channels/${channelId}`, {
+    method: "DELETE",
+    headers: authorized(token)
+  }),
+  testNotificationChannel: (channelId, token) => request(`/notifications/channels/${channelId}/test`, {
+    method: "POST",
+    headers: authorized(token)
+  }),
+  listNotificationLogs: (token, limit = 50) => request(`/notifications/logs?limit=${encodeURIComponent(limit)}`, {
+    headers: authorized(token)
   })
 };
+

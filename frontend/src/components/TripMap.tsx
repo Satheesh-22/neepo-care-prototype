@@ -10,6 +10,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
+import type { TelemetryHistoryPoint } from "../api/types";
 
 const originCoords: [number, number] = [12.9716, 77.5946]; // Origin: Bengaluru Depot
 const vehicleCoords: [number, number] = [13.0358, 77.597]; // Current: Stopped (Overheating Incident)
@@ -35,13 +36,22 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   return null;
 }
 
-export function TripMap() {
-  const [mapCenter, setMapCenter] = useState<[number, number]>(vehicleCoords);
+export interface TripMapProps {
+  activePoint?: TelemetryHistoryPoint | null;
+  historyPoints?: readonly TelemetryHistoryPoint[];
+}
+
+export function TripMap({ activePoint, historyPoints = [] }: TripMapProps = {}) {
+  const currentVehicleCoords: [number, number] = activePoint
+    ? [activePoint.latitude, activePoint.longitude]
+    : vehicleCoords;
+
+  const [mapCenter, setMapCenter] = useState<[number, number]>(currentVehicleCoords);
   const [mapZoom, setMapZoom] = useState<number>(12);
   const [viewMode, setViewMode] = useState<"VEHICLE" | "FULL_ROUTE">("VEHICLE");
 
   const handleCenterVehicle = () => {
-    setMapCenter(vehicleCoords);
+    setMapCenter(currentVehicleCoords);
     setMapZoom(13);
     setViewMode("VEHICLE");
   };
@@ -129,6 +139,14 @@ export function TripMap() {
             pathOptions={{ color: "#10b981", weight: 4, dashArray: "6, 8", opacity: 0.95 }}
           />
 
+          {/* Historical Telemetry Breadcrumb Trail */}
+          {historyPoints.length > 1 && (
+            <Polyline
+              positions={historyPoints.map((pt) => [pt.latitude, pt.longitude] as [number, number])}
+              pathOptions={{ color: "#0d5b63", weight: 3, opacity: 0.7, dashArray: "5, 7" }}
+            />
+          )}
+
           {/* Origin: Depot Marker */}
           <CircleMarker
             center={originCoords}
@@ -144,29 +162,41 @@ export function TripMap() {
             </Popup>
           </CircleMarker>
 
-          {/* Incident: Stopped Overheating Vehicle */}
+          {/* Vehicle Marker: Dynamic Replay or Incident Position */}
           <CircleMarker
-            center={vehicleCoords}
+            center={currentVehicleCoords}
             radius={11}
-            pathOptions={{ color: "#ffffff", fillColor: "#ef4444", fillOpacity: 1, weight: 3 }}
+            pathOptions={{
+              color: "#ffffff",
+              fillColor: (activePoint?.engineTemperatureCelsius ?? 106) > 100 ? "#ef4444" : "#0d5b63",
+              fillOpacity: 1,
+              weight: 3
+            }}
           >
             <Tooltip permanent direction="top" offset={[0, -10]}>
-              🚨 Stopped (106°C) · KA-01-EQ-4040
+              {activePoint
+                ? `${(activePoint.engineTemperatureCelsius ?? 0) > 100 ? "🚨 Overheat" : "📍 Vehicle"} (${activePoint.speedKph?.toFixed(0) ?? 0} km/h · ${activePoint.engineTemperatureCelsius?.toFixed(1) ?? "--"}°C)`
+                : "🚨 Stopped (106°C) · KA-01-EQ-4040"}
             </Tooltip>
             <Popup>
               <Box p={0.5}>
                 <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
-                  <WarningAmberRounded sx={{ color: "#ef4444", fontSize: 18 }} />
+                  <WarningAmberRounded sx={{ color: (activePoint?.engineTemperatureCelsius ?? 106) > 100 ? "#ef4444" : "#0d5b63", fontSize: 18 }} />
                   <Typography fontWeight={800} fontSize="0.9rem">Vehicle KA-01-EQ-4040</Typography>
                 </Stack>
-                <Typography variant="caption" color="error.main" fontWeight={700} display="block">
-                  Engine Temperature: 106°C (Threshold Exceeded)
+                <Typography
+                  variant="caption"
+                  color={(activePoint?.engineTemperatureCelsius ?? 106) > 100 ? "error.main" : "text.primary"}
+                  fontWeight={700}
+                  display="block"
+                >
+                  Engine Temperature: {activePoint?.engineTemperatureCelsius?.toFixed(1) ?? "106"}°C
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  Speed: 0 km/h · Heading: North-East (42°)
+                  Speed: {activePoint?.speedKph?.toFixed(0) ?? "0"} km/h · Cargo: {activePoint?.cargoTemperatureCelsius?.toFixed(1) ?? "4.2"}°C
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  Status: Disrupted · Recovery Action Pending
+                  {activePoint ? `Recorded: ${new Date(activePoint.recordedAt).toLocaleTimeString()}` : "Status: Disrupted · Recovery Action Pending"}
                 </Typography>
               </Box>
             </Popup>

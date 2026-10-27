@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/assignments/**").hasAnyRole("ADMIN", "DISPATCHER")
                         .requestMatchers("/api/v1/cargo/**").hasAnyRole("ADMIN", "DISPATCHER")
                         .requestMatchers("/api/v1/providers/**").hasAnyRole("ADMIN", "DISPATCHER")
+                        .requestMatchers("/api/v1/notifications/**").hasAnyRole("ADMIN", "DISPATCHER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/trips/**")
                         .hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/trips/*/telemetry-policy")
