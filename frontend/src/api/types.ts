@@ -1,5 +1,11 @@
 import type {
   ApiError,
+  ComplianceExportFormat,
+  ComplianceExportManifest,
+  ComplianceExportPackage,
+  ComplianceExportType,
+  ComplianceVerificationRequest,
+  ComplianceVerificationResult,
   CreateNotificationChannelRequest,
   DecisionExplanation,
   DisruptionSeverity,
@@ -19,6 +25,12 @@ import type {
 } from "@contracts";
 
 export type {
+  ComplianceExportFormat,
+  ComplianceExportManifest,
+  ComplianceExportPackage,
+  ComplianceExportType,
+  ComplianceVerificationRequest,
+  ComplianceVerificationResult,
   CreateNotificationChannelRequest,
   DisruptionSeverity,
   NotificationChannel,
@@ -371,6 +383,27 @@ export interface NeepoApi {
   deleteNotificationChannel(channelId: string, accessToken: string): Promise<void>;
   testNotificationChannel(channelId: string, accessToken: string): Promise<NotificationTestResult>;
   listNotificationLogs(accessToken: string, limit?: number): Promise<readonly NotificationDeliveryLog[]>;
+
+  // Compliance & Audit Evidence APIs
+  generateComplianceExport(
+    tripId: UUID,
+    exportType: ComplianceExportType,
+    exportFormat: ComplianceExportFormat,
+    accessToken: string
+  ): Promise<ComplianceExportPackage>;
+  listComplianceExports(
+    limit: number | undefined,
+    accessToken: string
+  ): Promise<readonly ComplianceExportManifest[]>;
+  getComplianceExportManifest(
+    manifestId: UUID,
+    accessToken: string
+  ): Promise<ComplianceExportManifest>;
+  verifyComplianceExport(
+    manifestId: UUID,
+    request: ComplianceVerificationRequest,
+    accessToken: string
+  ): Promise<ComplianceVerificationResult>;
 }
 
 export class ApiClientError extends Error {

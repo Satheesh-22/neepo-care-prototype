@@ -3,6 +3,7 @@ import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import PsychologyRounded from "@mui/icons-material/PsychologyRounded";
 import SpeedRounded from "@mui/icons-material/SpeedRounded";
 import VerifiedRounded from "@mui/icons-material/VerifiedRounded";
+import ShieldRounded from "@mui/icons-material/ShieldRounded";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -18,6 +19,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { neepoApi } from "../api";
 import { useAuthStore } from "../auth/authStore";
+import { ComplianceExportModal } from "../components/ComplianceExportModal";
 import { RecoveryPlanComparison } from "../components/RecoveryPlanComparison";
 import { StatusPill } from "../components/StatusPill";
 import { TelemetryReplayScrubber } from "../components/TelemetryReplayScrubber";
@@ -47,6 +49,7 @@ export function TripWorkspacePage() {
   });
 
   const [selectedReplayIndex, setSelectedReplayIndex] = useState<number | null>(null);
+  const [complianceModalOpen, setComplianceModalOpen] = useState(false);
 
   const telemetryHistory = useQuery({
     queryKey: ["telemetry-history", tripId],
@@ -105,21 +108,43 @@ export function TripWorkspacePage() {
         </Box>
 
         {session.user.role !== "DRIVER" && (
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={generate.isPending ? <CircularProgress size={18} color="inherit" /> : <AutoAwesomeRounded />}
-            onClick={() => generate.mutate()}
-            disabled={generate.isPending}
-            sx={{
-              py: 1.2,
-              px: 2.5,
-              borderRadius: 3,
-              boxShadow: "0 6px 16px -2px rgba(13, 91, 99, 0.4)"
-            }}
-          >
-            {generate.isPending ? "Evaluating Alternatives…" : "Generate Recovery Plans"}
-          </Button>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Button
+              variant="outlined"
+              size="large"
+              startIcon={<ShieldRounded />}
+              onClick={() => setComplianceModalOpen(true)}
+              sx={{
+                py: 1.2,
+                px: 2.2,
+                borderRadius: 3,
+                borderColor: "#0284c7",
+                color: "#0369a1",
+                fontWeight: 650,
+                "&:hover": {
+                  borderColor: "#0369a1",
+                  bgcolor: "#f0f9ff"
+                }
+              }}
+            >
+              Compliance Dossier
+            </Button>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={generate.isPending ? <CircularProgress size={18} color="inherit" /> : <AutoAwesomeRounded />}
+              onClick={() => generate.mutate()}
+              disabled={generate.isPending}
+              sx={{
+                py: 1.2,
+                px: 2.5,
+                borderRadius: 3,
+                boxShadow: "0 6px 16px -2px rgba(13, 91, 99, 0.4)"
+              }}
+            >
+              {generate.isPending ? "Evaluating Alternatives…" : "Generate Recovery Plans"}
+            </Button>
+          </Stack>
         )}
       </Stack>
 
@@ -305,6 +330,13 @@ export function TripWorkspacePage() {
           </CardContent>
         </Card>
       </Stack>
+
+      <ComplianceExportModal
+        open={complianceModalOpen}
+        onClose={() => setComplianceModalOpen(false)}
+        tripId={tripId}
+        tripReferenceCode={trip.data?.referenceCode}
+      />
     </Stack>
   );
 }

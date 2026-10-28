@@ -29,4 +29,6 @@ erDiagram
     USER ||--o{ AUDIT_EVENT : performs
     COMPANY ||--o{ NOTIFICATION_CHANNEL : configures
     NOTIFICATION_CHANNEL ||--o{ NOTIFICATION_DELIVERY_LOG : logs
+    COMPANY ||--o{ AUDIT_EXPORT_MANIFEST : generates
+    TRIP ||--o{ AUDIT_EXPORT_MANIFEST : certifies
 

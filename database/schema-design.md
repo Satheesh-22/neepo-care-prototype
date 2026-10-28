@@ -49,6 +49,7 @@ The executable physical schema is in:
 | `processed_events` | Cross-module idempotency ledger | Event ID primary key + payload hash |
 | `audit_events` | User/system traceability | Trace ID, actor, aggregate and details |
 | `benchmark_results` | CARE vs baseline measurements | Explicit metrics and immutable configuration |
+| `audit_export_manifests` | Tamper-evident compliance export packages | SHA-256 digest, export type, format, company/trip scoping |
 
 ## Freshness model
 
@@ -86,4 +87,9 @@ Never edit a Flyway migration after it has been applied outside disposable local
 
 - `notification_channels`: Configures tenant webhooks, SMS, and web-push endpoints with encrypted/hashed HMAC-SHA256 secrets, minimum severity thresholds, and tenant isolation.
 - `notification_delivery_logs`: Append-only audit log tracking every alert dispatch, suppression by severity, delivery outcome, signature header, and payload timestamp.
+
+## Audit export manifests and compliance verification
+
+- `audit_export_manifests`: Tamper-evident ledger of generated compliance export packages (FDA 21 CFR Part 11 / GDP). Records cryptographic SHA-256 digest, export type (cold-chain excursions, CARE decision chain, full dossier), format (JSON-LD, CSV, Printable HTML), generation timestamp, and generator identity.
+
 

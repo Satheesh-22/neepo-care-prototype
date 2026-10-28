@@ -1,6 +1,7 @@
 import type { DecisionExplanation, PlanEvaluation, RecoveryPlan, Trip, User, UserRole } from "@contracts";
 import type {
   CompanyProfile,
+  ComplianceExportManifest,
   CreateNotificationChannelRequest,
   DriverDetailed,
   DriverVehicleAssignment,
@@ -424,6 +425,60 @@ const mockNotificationLogs: NotificationDeliveryLog[] = [
     signature: "7e5d89f023b1c4e98f01a34567890abcdef1234567890abcdef1234567890ab",
     payload: '{"event":"DISRUPTION_DETECTED","type":"VEHICLE_OVERHEATING","severity":"HIGH","tempCelsius":106.2}',
     deliveredAt: "2026-08-24T12:59:30Z"
+  }
+];
+
+async function computeSha256(text: string): Promise<string> {
+  if (typeof crypto !== "undefined" && crypto.subtle && typeof crypto.subtle.digest === "function") {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(text);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch {
+      // Fall through to fallback
+    }
+  }
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) - hash) + text.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, "0");
+  return (hex + hex + hex + hex + hex + hex + hex + hex).substring(0, 64);
+}
+
+const mockComplianceManifests: ComplianceExportManifest[] = [
+  {
+    id: "00000000-0000-4000-8900-000000000001",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    tripId: DEMO_TRIP_ID,
+    exportType: "FULL_TRIP_DOSSIER",
+    format: "JSON_LD",
+    sha256Digest: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+    recordCount: 42,
+    generatedByUserId: "00000000-0000-4000-8100-000000000001",
+    metadata: {
+      regulatoryStandard: "FDA 21 CFR Part 11 / EU GDP Guidelines",
+      systemVersion: "neepo-care-1.1.0"
+    },
+    createdAt: "2026-08-24T13:05:00Z"
+  },
+  {
+    id: "00000000-0000-4000-8900-000000000002",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    tripId: DEMO_TRIP_ID,
+    exportType: "COLD_CHAIN_EXCURSION",
+    format: "CSV",
+    sha256Digest: "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+    recordCount: 15,
+    generatedByUserId: "00000000-0000-4000-8100-000000000001",
+    metadata: {
+      regulatoryStandard: "FDA 21 CFR Part 11 / EU GDP Guidelines",
+      systemVersion: "neepo-care-1.1.0"
+    },
+    createdAt: "2026-08-24T12:50:00Z"
   }
 ];
 
@@ -897,6 +952,146 @@ export const mockApi: NeepoApi = {
   async listNotificationLogs(_token: string, limit = 50) {
     await delay();
     return mockNotificationLogs.slice(0, limit);
+  },
+
+  // Compliance & Audit Evidence APIs
+  async generateComplianceExport(tripId, exportType, exportFormat) {
+    await delay();
+    let rawPayload = "";
+    let mediaType = "application/json";
+    let filename = `compliance-${tripId.substring(0, 8)}.${exportFormat.toLowerCase()}`;
+    const timestamp = new Date().toISOString();
+
+    if (exportFormat === "JSON_LD") {
+      mediaType = "application/ld+json";
+      filename = `compliance-dossier-${tripId.substring(0, 8)}.jsonld`;
+      rawPayload = JSON.stringify(
+        {
+          "@context": "https://neepo-care.io/schema/compliance-v1.jsonld",
+          "@type": "ComplianceAuditPackage",
+          tripId,
+          exportType,
+          regulatoryStandards: ["FDA 21 CFR Part 11", "EU GDP 2013/C 343/01"],
+          generatedAt: timestamp,
+          recordCount: demoTelemetryHistory.length,
+          trip: {
+            id: trip.id,
+            referenceCode: trip.referenceCode,
+            status: trip.status,
+            deliveryDeadline: trip.deliveryDeadline
+          },
+          telemetryRecords: demoTelemetryHistory,
+          recoveryPlans: plans,
+          decisionExplanation: explanation
+        },
+        null,
+        2
+      );
+    } else if (exportFormat === "CSV") {
+      mediaType = "text/csv";
+      filename = `compliance-dossier-${tripId.substring(0, 8)}.csv`;
+      const lines = [
+        `# NEEPO-CARE Compliance Evidence Export - FDA 21 CFR Part 11 / EU GDP`,
+        `# Export Type: ${exportType}`,
+        `# Trip ID: ${tripId}`,
+        `# Generated At: ${timestamp}`,
+        `timestamp,latitude,longitude,cargoTempC,engineTempC,speedKph,status`,
+        ...demoTelemetryHistory.map(
+          (t) =>
+            `${t.recordedAt},${t.latitude},${t.longitude},${t.cargoTemperatureCelsius ?? ""},${t.engineTemperatureCelsius ?? ""},${t.speedKph ?? ""},${t.observationStatus}`
+        )
+      ];
+      rawPayload = lines.join("\n");
+    } else {
+      mediaType = "text/html";
+      filename = `compliance-dossier-${tripId.substring(0, 8)}.html`;
+      rawPayload = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>NEEPO-CARE Regulatory Compliance Dossier</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 2rem; color: #1e293b; }
+    h1 { color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 0.5rem; }
+    .badge { background: #e0f2fe; color: #0369a1; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #cbd5e1; padding: 0.5rem; text-align: left; }
+    th { background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <h1>NEEPO-CARE Compliance Evidence Dossier</h1>
+  <p><span class="badge">FDA 21 CFR Part 11 &amp; EU GDP Compliant</span></p>
+  <p><strong>Trip:</strong> ${trip.referenceCode} (${tripId})</p>
+  <p><strong>Export Type:</strong> ${exportType}</p>
+  <p><strong>Exported At:</strong> ${timestamp}</p>
+  <h2>Telemetry &amp; Audit Trail (${demoTelemetryHistory.length} records)</h2>
+  <table>
+    <thead><tr><th>Time</th><th>Lat</th><th>Lng</th><th>Cargo Temp</th><th>Status</th></tr></thead>
+    <tbody>
+      ${demoTelemetryHistory.map((t) => `<tr><td>${t.recordedAt}</td><td>${t.latitude}</td><td>${t.longitude}</td><td>${t.cargoTemperatureCelsius ?? "N/A"}°C</td><td>${t.observationStatus}</td></tr>`).join("")}
+    </tbody>
+  </table>
+</body>
+</html>`;
+    }
+
+    const sha256Digest = await computeSha256(rawPayload);
+    const manifest: ComplianceExportManifest = {
+      id: crypto.randomUUID(),
+      companyId: "00000000-0000-4000-8000-000000000001",
+      tripId,
+      exportType,
+      format: exportFormat,
+      sha256Digest,
+      recordCount: demoTelemetryHistory.length,
+      generatedByUserId: "00000000-0000-4000-8100-000000000001",
+      metadata: {
+        regulatoryStandard: "FDA 21 CFR Part 11 / EU GDP Guidelines",
+        systemVersion: "neepo-care-1.1.0"
+      },
+      createdAt: timestamp
+    };
+    mockComplianceManifests.unshift(manifest);
+
+    return {
+      manifest,
+      rawPayload,
+      mediaType,
+      filename
+    };
+  },
+
+  async listComplianceExports(_limit = 50) {
+    await delay();
+    return mockComplianceManifests.slice(0, _limit);
+  },
+
+  async getComplianceExportManifest(manifestId) {
+    await delay();
+    const manifest = mockComplianceManifests.find((m) => m.id === manifestId);
+    if (!manifest) throw new Error("Compliance manifest not found");
+    return manifest;
+  },
+
+  async verifyComplianceExport(manifestId, request) {
+    await delay();
+    const manifest = mockComplianceManifests.find((m) => m.id === manifestId);
+    const computedDigest = await computeSha256(request.payload);
+    const expectedDigest = manifest ? manifest.sha256Digest : "0".repeat(64);
+    const valid = manifest !== undefined && computedDigest === expectedDigest;
+
+    return {
+      manifestId,
+      valid,
+      expectedDigest,
+      computedDigest,
+      verifiedAt: new Date().toISOString(),
+      message: valid
+        ? "Cryptographic verification passed. Payload bit-level integrity verified against tamper-evident manifest."
+        : "Tamper detected! Computed SHA-256 digest does not match the signed manifest digest."
+    };
   }
 };
+
 

@@ -24,6 +24,7 @@ tags:
   - name: Decisions
   - name: Metrics
   - name: Notifications
+  - name: Compliance
 
 paths:
   /auth/login:
@@ -702,6 +703,123 @@ paths:
                 $ref: '#/components/schemas/NotificationDeliveryLogListSuccessResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /compliance/exports/trip/{tripId}:
+    post:
+      tags: [Compliance]
+      operationId: generateTripComplianceExport
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+        - name: type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ComplianceExportType'
+            default: FULL_TRIP_DOSSIER
+        - name: format
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ComplianceExportFormat'
+            default: JSON_LD
+      responses:
+        '200':
+          description: Cryptographic compliance package generated with SHA-256 digest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceExportPackageSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /compliance/exports:
+    get:
+      tags: [Compliance]
+      operationId: listComplianceExports
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: List of audit export manifests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceExportManifestListSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /compliance/exports/{manifestId}:
+    get:
+      tags: [Compliance]
+      operationId: getComplianceExportManifest
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: manifestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit export manifest details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceExportManifestSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /compliance/exports/{manifestId}/verify:
+    post:
+      tags: [Compliance]
+      operationId: verifyComplianceExport
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: manifestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplianceVerificationRequest'
+      responses:
+        '200':
+          description: Verification result comparing payload SHA-256 digest with registered manifest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceVerificationSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
 components:
   securitySchemes:
@@ -2083,4 +2201,127 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/NotificationDeliveryLog'
+
+    ComplianceExportType:
+      type: string
+      enum: [COLD_CHAIN_EXCURSION, CARE_DECISION_CHAIN, FULL_TRIP_DOSSIER]
+
+    ComplianceExportFormat:
+      type: string
+      enum: [JSON_LD, CSV, PRINTABLE_HTML]
+
+    ComplianceExportManifest:
+      type: object
+      required: [id, companyId, exportType, format, sha256Digest, recordCount, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+          nullable: true
+        exportType:
+          $ref: '#/components/schemas/ComplianceExportType'
+        format:
+          $ref: '#/components/schemas/ComplianceExportFormat'
+        sha256Digest:
+          type: string
+          pattern: '^[a-fA-F0-9]{64}$'
+        recordCount:
+          type: integer
+          minimum: 0
+        generatedByUserId:
+          type: string
+          format: uuid
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ComplianceExportManifestSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/ComplianceExportManifest'
+
+    ComplianceExportManifestListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ComplianceExportManifest'
+
+    ComplianceExportPackage:
+      type: object
+      required: [manifest, rawPayload, mediaType, filename]
+      properties:
+        manifest:
+          $ref: '#/components/schemas/ComplianceExportManifest'
+        rawPayload:
+          type: string
+        mediaType:
+          type: string
+        filename:
+          type: string
+
+    ComplianceExportPackageSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/ComplianceExportPackage'
+
+    ComplianceVerificationRequest:
+      type: object
+      required: [payload]
+      properties:
+        payload:
+          type: string
+
+    ComplianceVerificationResult:
+      type: object
+      required: [manifestId, valid, expectedDigest, computedDigest, verifiedAt]
+      properties:
+        manifestId:
+          type: string
+          format: uuid
+        valid:
+          type: boolean
+        expectedDigest:
+          type: string
+          pattern: '^[a-fA-F0-9]{64}$'
+        computedDigest:
+          type: string
+          pattern: '^[a-fA-F0-9]{64}$'
+        verifiedAt:
+          type: string
+          format: date-time
+        message:
+          type: string
+
+    ComplianceVerificationSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/ComplianceVerificationResult'
+
 

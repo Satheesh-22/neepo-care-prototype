@@ -152,3 +152,14 @@ NotificationDeliveryStatus:
   - SUPPRESSED_BY_SEVERITY
   - FAILED
 
+ComplianceExportType:
+  - COLD_CHAIN_EXCURSION
+  - CARE_DECISION_CHAIN
+  - FULL_TRIP_DOSSIER
+
+ComplianceExportFormat:
+  - JSON_LD
+  - CSV
+  - PRINTABLE_HTML
+
+

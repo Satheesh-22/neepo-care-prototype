@@ -3,9 +3,9 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Milestone 1 & Milestone 2 (v1.1 P1) Completed
+## Current Status: Milestone 1, Milestone 2 & Milestone 3 (v1.1 P1) Completed
 
-Milestone 1 and Milestone 2 of the v1.1 roadmap have been implemented, integrated, and verified:
+Milestones 1, 2, and 3 of the v1.1 roadmap have been implemented, integrated, and verified:
 
 1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**:
    - Added `GET /api/v1/trips/{tripId}/telemetry/history` with optional ISO-8601 bounds, limit clamping (1–2000), tenant isolation, and RBAC.
@@ -21,10 +21,17 @@ Milestone 1 and Milestone 2 of the v1.1 roadmap have been implemented, integrate
    - Created `NotificationSettingsModal.tsx` in frontend with channel management, test ping triggers, HMAC signature validation, and delivery audit log inspection.
    - Verified 150/150 backend tests and 27/27 frontend tests passing cleanly.
 
+3. **Cryptographic Audit & Compliance Evidence Exports (Milestone 3)**:
+   - Created Flyway migration `V9__create_compliance_and_audit_manifest_domain.sql` defining `audit_export_manifests`.
+   - Implemented `ComplianceExportService` producing multi-format outputs (`JSON_LD`, `CSV`, `PRINTABLE_HTML`), SHA-256 tamper-evident digest computation, regulatory context formatting (FDA 21 CFR Part 11 & EU GDP Guidelines), and bit-level tamper verification.
+   - Implemented `ComplianceExportController` with `POST /api/v1/compliance/exports/trip/{tripId}`, `GET /api/v1/compliance/exports`, `GET /api/v1/compliance/exports/{manifestId}`, and `POST /api/v1/compliance/exports/{manifestId}/verify` (with `X-Neepo-Digest` response header).
+   - Created `ComplianceExportModal.tsx` in frontend with Export Generator, bit-level Cryptographic Tamper Verifier, and Audit Ledger views, integrated into `TripWorkspacePage.tsx`.
+   - Verified test suites: 157/157 backend tests, 117/117 care-engine tests, 31/31 frontend tests, and clean foundation validator (V1–V9).
+
 ## Next Suggested Milestone
 
-1. **v1.1 Milestone 3 (P1): Cryptographic Audit & Compliance Evidence Exports**: Tamper-evident export engine generating SHA-256 digested audit packages (JSON-LD, CSV, and printable PDF) for cold-chain excursions, driver acknowledgments, and CARE plan acceptance history (FDA 21 CFR Part 11 & GDP compliance).
-2. **v1.1 Milestone 4 (P2): Fleet Reliability & Cost-Avoidance Analytics**: Materialized aggregate views and executive metrics tracking Mean Time to Recovery (MTTR), driver compliance rates, and estimated cost avoidance across chosen intervals.
+1. **v1.1 Milestone 4 (P2): Fleet Reliability & Cost-Avoidance Analytics**: Materialized aggregate views and executive metrics tracking Mean Time to Recovery (MTTR), driver compliance rates, and estimated cost avoidance across chosen intervals.
+2. **v1.1 Milestone 5 (P2): Hardware Gateway Fleet Pilot & Offline Resilience**: End-to-end telemetry ingestion from cellular hardware gateways with dead-zone NOR flash buffer replay.
 
 ## Required Verification & Benchmark Commands
 

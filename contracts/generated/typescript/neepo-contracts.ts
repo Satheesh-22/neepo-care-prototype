@@ -435,3 +435,40 @@ export interface NotificationDeliveryLog {
   readonly errorMessage?: string | null;
   readonly deliveredAt: IsoInstant;
 }
+
+export type ComplianceExportType = "COLD_CHAIN_EXCURSION" | "CARE_DECISION_CHAIN" | "FULL_TRIP_DOSSIER";
+export type ComplianceExportFormat = "JSON_LD" | "CSV" | "PRINTABLE_HTML";
+
+export interface ComplianceExportManifest {
+  readonly id: UUID;
+  readonly companyId: UUID;
+  readonly tripId?: UUID | null;
+  readonly exportType: ComplianceExportType;
+  readonly format: ComplianceExportFormat;
+  readonly sha256Digest: string;
+  readonly recordCount: number;
+  readonly generatedByUserId?: UUID | null;
+  readonly metadata: Record<string, unknown>;
+  readonly createdAt: IsoInstant;
+}
+
+export interface ComplianceExportPackage {
+  readonly manifest: ComplianceExportManifest;
+  readonly rawPayload: string;
+  readonly mediaType: string;
+  readonly filename: string;
+}
+
+export interface ComplianceVerificationRequest {
+  readonly payload: string;
+}
+
+export interface ComplianceVerificationResult {
+  readonly manifestId: UUID;
+  readonly valid: boolean;
+  readonly expectedDigest: string;
+  readonly computedDigest: string;
+  readonly verifiedAt: IsoInstant;
+  readonly message?: string;
+}
+

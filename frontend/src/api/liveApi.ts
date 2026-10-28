@@ -1,7 +1,72 @@
 import type { ApiResult } from "@contracts";
-import { ApiClientError, type LoginRequest, type NeepoApi, type Session, type UserAdminItem } from "./types";
+import {
+  ApiClientError,
+  type ComplianceExportFormat,
+  type ComplianceExportManifest,
+  type ComplianceExportType,
+  type LoginRequest,
+  type NeepoApi,
+  type Session,
+  type UserAdminItem
+} from "./types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
+
+interface BackendManifestResponse {
+  id: string;
+  companyId: string;
+  tripId?: string | null;
+  exportType: ComplianceExportType;
+  exportFormat: ComplianceExportFormat;
+  sha256Digest: string;
+  recordCount: number;
+  exportedAt: string;
+  exportedByUserId?: string | null;
+  regulatoryContext?: string;
+  metadataJson?: string;
+}
+
+interface BackendPackageResponse {
+  manifest: BackendManifestResponse;
+  contentType: string;
+  filename: string;
+  payloadContent: string;
+}
+
+interface BackendVerificationResponse {
+  manifestId: string;
+  valid: boolean;
+  calculatedSha256Hex: string;
+  manifestSha256Hex: string;
+  verifiedAt: string;
+  message: string;
+}
+
+function mapManifest(m: BackendManifestResponse): ComplianceExportManifest {
+  let metadata: Record<string, unknown> = {};
+  if (m.metadataJson) {
+    try {
+      metadata = JSON.parse(m.metadataJson);
+    } catch {
+      metadata = { raw: m.metadataJson };
+    }
+  }
+  if (m.regulatoryContext) {
+    metadata.regulatoryContext = m.regulatoryContext;
+  }
+  return {
+    id: m.id,
+    companyId: m.companyId,
+    tripId: m.tripId ?? null,
+    exportType: m.exportType,
+    format: m.exportFormat,
+    sha256Digest: m.sha256Digest,
+    recordCount: m.recordCount,
+    generatedByUserId: m.exportedByUserId ?? null,
+    metadata,
+    createdAt: m.exportedAt
+  };
+}
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
@@ -201,6 +266,58 @@ export const liveApi: NeepoApi = {
   }),
   listNotificationLogs: (token, limit = 50) => request(`/notifications/logs?limit=${encodeURIComponent(limit)}`, {
     headers: authorized(token)
-  })
+  }),
+
+  // Compliance & Audit Evidence APIs
+  generateComplianceExport: async (tripId, exportType, exportFormat, token) => {
+    const raw = await request<BackendPackageResponse>(
+      `/compliance/exports/trip/${tripId}?type=${exportType}&format=${exportFormat}`,
+      {
+        method: "POST",
+        headers: authorized(token)
+      }
+    );
+    return {
+      manifest: mapManifest(raw.manifest),
+      rawPayload: raw.payloadContent,
+      mediaType: raw.contentType,
+      filename: raw.filename
+    };
+  },
+  listComplianceExports: async (limit = 50, token) => {
+    const raw = await request<readonly BackendManifestResponse[]>(
+      `/compliance/exports?limit=${encodeURIComponent(limit)}`,
+      { headers: authorized(token) }
+    );
+    return raw.map(mapManifest);
+  },
+  getComplianceExportManifest: async (manifestId, token) => {
+    const raw = await request<BackendManifestResponse>(
+      `/compliance/exports/${manifestId}`,
+      { headers: authorized(token) }
+    );
+    return mapManifest(raw);
+  },
+  verifyComplianceExport: async (manifestId, verificationRequest, token) => {
+    const raw = await request<BackendVerificationResponse>(
+      `/compliance/exports/${manifestId}/verify`,
+      {
+        method: "POST",
+        headers: authorized(token),
+        body: JSON.stringify({
+          payloadContent: verificationRequest.payload
+        })
+      }
+    );
+    return {
+      manifestId: raw.manifestId,
+      valid: raw.valid,
+      expectedDigest: raw.manifestSha256Hex,
+      computedDigest: raw.calculatedSha256Hex,
+      verifiedAt: raw.verifiedAt,
+      message: raw.message
+    };
+  }
 };
+
 
