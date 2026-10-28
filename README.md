@@ -14,7 +14,9 @@ The end-to-end local application is implemented on `feature/full-stack-integrati
 - Company profile, user invitation, driver onboarding, vehicle registration & allocation management
 - Deterministic CARE context validation, recovery generation, scoring, selection,
   invalidation, re-planning and benchmark metrics
-- PostgreSQL 17 with PostGIS and seven ordered Flyway migrations (V1–V7)
+- High-Resolution Telemetry History & Interactive Route Replay (v1.1 Milestone 1) with Leaflet scrubber ($1\times, 2\times, 5\times$)
+- Multi-Channel Real-Time Alerting & Webhooks Engine (v1.1 Milestone 2) with HMAC-SHA256 signatures (`X-Neepo-Signature`) and delivery audit logs
+- PostgreSQL 17 with PostGIS and eight ordered Flyway migrations (V1–V8)
 - Redis-backed local service boundary
 - React, TypeScript and Vite PWA with Administrator, Dispatcher and Driver workflows
 - Adaptive telemetry policy, offline telemetry queue and explicit synchronization
@@ -122,8 +124,8 @@ invalidation and automatic re-planning (INT-11, INT-12). Optional endpoint, acco
 `NEEPO_DRIVER_EMAIL`, `NEEPO_TEST_TRIP_ID`, `NEEPO_TEST_VEHICLE_ID` and
 `NEEPO_TEST_ROUTE_ID` environment variables.
 
-The verified run passed 118 backend tests, 117 CARE-engine tests, 7 frontend tests,
-frontend lint and production build, the foundation validator, clean-database migration test,
+The verified test suite passed 150 backend tests, 117 CARE-engine tests, 27 frontend unit and integration tests (plus 11 Playwright journeys),
+frontend lint and production build, the foundation validator (V1–V8), clean-database migration test,
 Compose validation, release packaging verification and all 23 repeatable live-stack checks.
 
 ## API and events
