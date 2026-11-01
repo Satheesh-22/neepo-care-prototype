@@ -5,6 +5,7 @@ import type {
   CreateNotificationChannelRequest,
   DriverDetailed,
   DriverVehicleAssignment,
+  HardwareGatewayItem,
   LoginRequest,
   NeepoApi,
   NotificationChannel,
@@ -14,6 +15,56 @@ import type {
   UserAdminItem,
   VehicleDetailed
 } from "./types";
+
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
+const mockGateways: Mutable<HardwareGatewayItem>[] = [
+  {
+    id: "00000000-0000-4000-8900-000000000001",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    vehicleId: "00000000-0000-4000-8300-000000000001",
+    deviceSerial: "NEEPO-GW-2026-001",
+    imei: "867530901234567",
+    secureElementId: "ATECC608A-001A-B4C2",
+    firmwareVersion: "v1.1.0-prod",
+    status: "ACTIVE",
+    lastHeartbeatAt: "2026-08-24T12:59:45Z",
+    lastSyncEventId: "591983f6-a26f-4ab0-8d86-89bcb7a2ddfe",
+    bufferCapacityRecords: 10000,
+    reportingIntervalSeconds: 5,
+    metadata: {
+      mcu: "ESP32-S3-WROOM-1",
+      cellularModem: "SIM7600G-H (LTE Cat-4)",
+      flashStorage: "32MB SPI NOR (W25Q256JV)",
+      secureElement: "Microchip ATECC608A"
+    },
+    createdAt: "2026-08-01T00:00:00Z",
+    updatedAt: "2026-08-24T12:59:45Z"
+  },
+  {
+    id: "00000000-0000-4000-8900-000000000002",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    vehicleId: "00000000-0000-4000-8300-000000000002",
+    deviceSerial: "NEEPO-GW-2026-002",
+    imei: "867530901234568",
+    secureElementId: "ATECC608A-002B-C5D3",
+    firmwareVersion: "v1.1.0-prod",
+    status: "OFFLINE",
+    lastHeartbeatAt: "2026-08-24T09:15:20Z",
+    lastSyncEventId: null,
+    bufferCapacityRecords: 10000,
+    reportingIntervalSeconds: 5,
+    metadata: {
+      mcu: "ESP32-S3-WROOM-1",
+      cellularModem: "SIM7600G-H (LTE Cat-4)",
+      flashStorage: "32MB SPI NOR (W25Q256JV)"
+    },
+    createdAt: "2026-08-01T00:00:00Z",
+    updatedAt: "2026-08-24T09:15:20Z"
+  }
+];
 
 export const DEMO_TRIP_ID = "00000000-0000-4000-8600-000000000001";
 const now = "2026-08-24T13:00:00Z";
@@ -1192,6 +1243,95 @@ export const mockApi: NeepoApi = {
         { strategyName: "Substitute Vehicle Cargo Transfer", usageCount: 5, successRate: 100.0, averageCostAvoidanceUsd: 14200.0 },
         { strategyName: "Rest Window Re-assignment", usageCount: 2, successRate: 100.0, averageCostAvoidanceUsd: 3100.0 }
       ]
+    };
+  },
+  listGateways: async () => {
+    return [...mockGateways];
+  },
+  getGateway: async (gatewayId) => {
+    const gw = mockGateways.find(g => g.id === gatewayId);
+    if (!gw) {
+      throw new Error(`Gateway ${gatewayId} not found`);
+    }
+    return { ...gw };
+  },
+  registerGateway: async (input) => {
+    const newId = `00000000-0000-4000-8900-${String(mockGateways.length + 1).padStart(12, "0")}`;
+    const timestamp = new Date().toISOString();
+    const created: HardwareGatewayItem = {
+      id: newId,
+      companyId: "00000000-0000-4000-8000-000000000001",
+      vehicleId: input.vehicleId ?? null,
+      deviceSerial: input.deviceSerial,
+      imei: input.imei ?? null,
+      secureElementId: input.secureElementId ?? null,
+      firmwareVersion: input.firmwareVersion ?? "v1.1.0-prod",
+      status: "REGISTERED",
+      lastHeartbeatAt: null,
+      lastSyncEventId: null,
+      bufferCapacityRecords: input.bufferCapacityRecords ?? 10000,
+      reportingIntervalSeconds: input.reportingIntervalSeconds ?? 5,
+      metadata: input.metadata ?? undefined,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+    mockGateways.push(created);
+    return created;
+  },
+  getGatewayOtaConfig: async (gatewayId) => {
+    const gw = mockGateways.find((g) => g.id === gatewayId);
+    if (!gw) {
+      throw new Error(`Gateway ${gatewayId} not found`);
+    }
+    return {
+      gatewayId: gw.id,
+      deviceSerial: gw.deviceSerial,
+      firmwareVersion: gw.firmwareVersion,
+      reportingIntervalSeconds: gw.reportingIntervalSeconds,
+      bufferCapacityRecords: gw.bufferCapacityRecords,
+      activeTripId: DEMO_TRIP_ID,
+      activeVehicleId: gw.vehicleId ?? null,
+      maxEngineTemperatureCelsius: 105.0,
+      minCargoTemperatureCelsius: -20.0,
+      maxCargoTemperatureCelsius: 8.0,
+      ingestionEndpoint: "/api/v1/telemetry",
+      serverTime: new Date().toISOString()
+    };
+  },
+  syncGatewayBatch: async (gatewayId, input) => {
+    const gw = mockGateways.find((g) => g.id === gatewayId);
+    if (gw) {
+      gw.lastHeartbeatAt = new Date().toISOString();
+      gw.status = "ACTIVE";
+      if (input.records.length > 0) {
+        gw.lastSyncEventId = input.records[input.records.length - 1].eventId;
+      }
+    }
+    return {
+      gatewayId,
+      tripId: input.tripId,
+      batchSize: input.records.length,
+      acceptedCount: input.records.length,
+      deduplicatedCount: 0,
+      syncMode: input.syncMode,
+      careEvaluated: true,
+      syncedAt: new Date().toISOString()
+    };
+  },
+  sendGatewayHeartbeat: async (gatewayId, input) => {
+    const gw = mockGateways.find((g) => g.id === gatewayId);
+    if (gw) {
+      gw.lastHeartbeatAt = new Date().toISOString();
+      gw.status = "ACTIVE";
+      if (input.firmwareVersion) {
+        gw.firmwareVersion = input.firmwareVersion;
+      }
+    }
+    return {
+      gatewayId,
+      status: "ACTIVE",
+      serverTime: new Date().toISOString(),
+      otaUpdateAvailable: false
     };
   }
 };

@@ -48,6 +48,7 @@ const VehicleCreatePage = lazyWithRetry(() => import("../pages/VehicleCreatePage
 const AssignmentAdminPage = lazyWithRetry(() => import("../pages/AssignmentAdminPage").then((m) => ({ default: m.AssignmentAdminPage })));
 const DriverProfilePage = lazyWithRetry(() => import("../pages/DriverProfilePage").then((m) => ({ default: m.DriverProfilePage })));
 const FleetAnalyticsPage = lazyWithRetry(() => import("../pages/FleetAnalyticsPage").then((m) => ({ default: m.FleetAnalyticsPage })));
+const HardwareGatewayPage = lazyWithRetry(() => import("../pages/HardwareGatewayPage").then((m) => ({ default: m.HardwareGatewayPage })));
 
 function LoadingView() {
   return <Stack alignItems="center" py={10}><CircularProgress aria-label="Loading workspace" /></Stack>;
@@ -88,6 +89,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={["ADMIN", "DISPATCHER"]}>
             <Deferred><FleetAnalyticsPage /></Deferred>
+          </RoleGuard>
+        )
+      },
+      {
+        path: "/gateways",
+        element: (
+          <RoleGuard allowedRoles={["ADMIN", "DISPATCHER"]}>
+            <Deferred><HardwareGatewayPage /></Deferred>
           </RoleGuard>
         )
       },

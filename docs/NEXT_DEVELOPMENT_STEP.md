@@ -3,9 +3,9 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Milestone 1, Milestone 2, Milestone 3 & Milestone 4 Completed
+## Current Status: Milestones 1 through 5 Completed
 
-Milestones 1, 2, 3, and 4 of the v1.1 roadmap have been implemented, integrated, and verified:
+Milestones 1, 2, 3, 4, and 5 of the v1.1 roadmap have been implemented, integrated, and verified:
 
 1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**:
    - Added `GET /api/v1/trips/{tripId}/telemetry/history` with optional ISO-8601 bounds, limit clamping (1–2000), tenant isolation, and RBAC.
@@ -35,9 +35,17 @@ Milestones 1, 2, 3, and 4 of the v1.1 roadmap have been implemented, integrated,
    - Added `/analytics` route with RoleGuard (`ADMIN`, `DISPATCHER`) and navigation link in AppShell.
    - Verified test suites: 162/162 backend tests, 117/117 care-engine tests, 33/33 frontend tests, production PWA build, and foundation validator (V1–V10).
 
+5. **Hardware Gateway Fleet Pilot & Offline Resilience (Milestone 5)**:
+   - Created Flyway migration `V11__create_hardware_gateway_domain.sql` defining `hardware_gateways` and `gateway_sync_logs` tables with composite indexes.
+   - Implemented `HardwareGatewayService` and `HardwareGatewayController` with `GET/POST /api/v1/gateways`, `GET /api/v1/gateways/{id}/config`, `POST /api/v1/gateways/{id}/sync`, and `POST /api/v1/gateways/{id}/heartbeat`.
+   - Supported HMAC-SHA256 signature verification, SPI flash batch telemetry ingestion with idempotent deduplication (`ON CONFLICT (event_id) DO NOTHING`), and dynamic vehicle safety/cold-chain envelope resolution.
+   - Integrated `HardwareGatewayPage.tsx` with fleet KPI summary cards, gateways table with search/filtering, registration dialog with vehicle assignment, and live OTA diagnostics & offline flash replay simulator.
+   - Added `/gateways` route with RoleGuard (`ADMIN`, `DISPATCHER`) and navigation link in AppShell.
+   - Verified test suites: 170/170 backend tests, 117/117 care-engine tests, 37/37 frontend tests, ESLint clean (0 errors), clean Vite PWA build, and foundation validator (V1–V11).
+
 ## Next Suggested Milestone
 
-1. **v1.1 Milestone 5 (P2): Hardware Gateway Fleet Pilot & Offline Resilience**: End-to-end telemetry ingestion from cellular hardware gateways with dead-zone NOR flash buffer replay, reconnect deduplication, and remote configuration over-the-air.
+1. **v1.1 Milestone 6: Multi-Tenant Enterprise Organization & SSO Integration**: SAML 2.0 / OIDC enterprise Single Sign-On, hierarchical multi-org fleet partitioning, and automated SCIM user provisioning.
 
 ## Required Verification & Benchmark Commands
 

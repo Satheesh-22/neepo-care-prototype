@@ -9,6 +9,7 @@ import LogoutRounded from "@mui/icons-material/LogoutRounded";
 import NotificationsRounded from "@mui/icons-material/NotificationsRounded";
 import PeopleRounded from "@mui/icons-material/PeopleRounded";
 import PersonPinRounded from "@mui/icons-material/PersonPinRounded";
+import RouterRounded from "@mui/icons-material/RouterRounded";
 import SensorsRounded from "@mui/icons-material/SensorsRounded";
 import SyncRounded from "@mui/icons-material/SyncRounded";
 import WifiOffRounded from "@mui/icons-material/WifiOffRounded";
@@ -58,6 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
           { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },
           { label: "Assignments", path: "/admin/assignments", icon: <AssignmentIndRounded sx={{ fontSize: 18 }} /> },
+          { label: "Gateways", path: "/gateways", icon: <RouterRounded sx={{ fontSize: 18 }} /> },
           { label: "Analytics", path: "/analytics", icon: <InsightsRounded sx={{ fontSize: 18 }} /> },
           { label: "Workspace", path: `/trips/${DEMO_TRIP_ID}`, icon: <LocalShippingRounded sx={{ fontSize: 18 }} /> },
           { label: "Simulator", path: `/simulator/trips/${DEMO_TRIP_ID}`, icon: <SensorsRounded sx={{ fontSize: 18 }} /> }
@@ -70,6 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
             { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },
             { label: "Assignments", path: "/admin/assignments", icon: <AssignmentIndRounded sx={{ fontSize: 18 }} /> },
+            { label: "Gateways", path: "/gateways", icon: <RouterRounded sx={{ fontSize: 18 }} /> },
             { label: "Simulator", path: `/simulator/trips/${DEMO_TRIP_ID}`, icon: <SensorsRounded sx={{ fontSize: 18 }} /> }
           ]
         : [

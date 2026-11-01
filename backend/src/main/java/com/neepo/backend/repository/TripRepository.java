@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface TripRepository extends JpaRepository<Trip, UUID> {
     Optional<Trip> findByIdAndCompanyId(UUID id, UUID companyId);
     boolean existsByCompanyIdAndReferenceCodeIgnoreCase(UUID companyId, String referenceCode);
+    java.util.List<Trip> findAllByCompanyIdAndVehicleIdOrderByCreatedAtDesc(UUID companyId, UUID vehicleId);
 }

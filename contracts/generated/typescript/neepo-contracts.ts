@@ -512,3 +512,86 @@ export interface FleetAnalyticsSummary {
   readonly recoveryStrategyBreakdown: readonly RecoveryStrategyStat[];
 }
 
+export type HardwareGatewayStatus = "REGISTERED" | "ACTIVE" | "OFFLINE" | "SUSPENDED";
+export type GatewaySyncMode = "STREAM" | "OFFLINE_REPLAY" | "CELLULAR_HANDOFF";
+
+export interface HardwareGatewayItem {
+  readonly id: UUID;
+  readonly companyId: UUID;
+  readonly vehicleId?: UUID | null;
+  readonly vehicleRegistrationNumber?: string | null;
+  readonly deviceSerial: string;
+  readonly imei?: string | null;
+  readonly secureElementId?: string | null;
+  readonly firmwareVersion: string;
+  readonly status: HardwareGatewayStatus;
+  readonly lastHeartbeatAt?: IsoInstant | null;
+  readonly lastSyncEventId?: UUID | null;
+  readonly bufferCapacityRecords: number;
+  readonly reportingIntervalSeconds: number;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly createdAt: IsoInstant;
+  readonly updatedAt?: IsoInstant;
+}
+
+export interface RegisterHardwareGatewayRequest {
+  readonly deviceSerial: string;
+  readonly vehicleId?: UUID | null;
+  readonly imei?: string;
+  readonly secureElementId?: string;
+  readonly firmwareVersion?: string;
+  readonly hmacSecret: string;
+  readonly bufferCapacityRecords?: number;
+  readonly reportingIntervalSeconds?: number;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface GatewayOtaConfigResponse {
+  readonly gatewayId: UUID;
+  readonly deviceSerial: string;
+  readonly firmwareVersion: string;
+  readonly reportingIntervalSeconds: number;
+  readonly bufferCapacityRecords: number;
+  readonly activeTripId?: UUID | null;
+  readonly activeVehicleId?: UUID | null;
+  readonly maxEngineTemperatureCelsius: number;
+  readonly minCargoTemperatureCelsius: number;
+  readonly maxCargoTemperatureCelsius: number;
+  readonly ingestionEndpoint: string;
+  readonly serverTime: IsoInstant;
+}
+
+export interface GatewayBatchSyncRequest {
+  readonly tripId: UUID;
+  readonly syncMode: GatewaySyncMode;
+  readonly networkCarrier?: string;
+  readonly signalRssi?: number;
+  readonly records: readonly TelemetryObservation[];
+}
+
+export interface GatewayBatchSyncResponse {
+  readonly gatewayId: UUID;
+  readonly tripId: UUID;
+  readonly batchSize: number;
+  readonly acceptedCount: number;
+  readonly deduplicatedCount: number;
+  readonly syncMode: GatewaySyncMode;
+  readonly careEvaluated: boolean;
+  readonly syncedAt: IsoInstant;
+}
+
+export interface GatewayHeartbeatRequest {
+  readonly firmwareVersion?: string;
+  readonly batteryVoltage?: number;
+  readonly signalRssi?: number;
+  readonly bufferedRecordsCount?: number;
+}
+
+export interface GatewayHeartbeatResponse {
+  readonly gatewayId: UUID;
+  readonly status: HardwareGatewayStatus;
+  readonly serverTime: IsoInstant;
+  readonly otaUpdateAvailable: boolean;
+}
+
+

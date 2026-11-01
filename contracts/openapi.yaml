@@ -847,6 +847,148 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /gateways:
+    get:
+      tags: [HardwareGateways]
+      operationId: listGateways
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of registered hardware telematics gateways
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HardwareGatewayListSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [HardwareGateways]
+      operationId: registerGateway
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterHardwareGatewayRequest'
+      responses:
+        '201':
+          description: Gateway successfully registered and provisioned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HardwareGatewayItemSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /gateways/{gatewayId}/config:
+    parameters:
+      - name: gatewayId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [HardwareGateways]
+      operationId: getGatewayOtaConfig
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dynamic OTA configuration & telematics policy for hardware gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayOtaConfigSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /gateways/{gatewayId}/sync:
+    parameters:
+      - name: gatewayId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [HardwareGateways]
+      operationId: syncGatewayBatch
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: X-Device-Id
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: X-Device-Timestamp
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: X-Device-Signature
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GatewayBatchSyncRequest'
+      responses:
+        '200':
+          description: Buffered SPI NOR Flash telemetry batch synchronized and deduplicated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayBatchSyncSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /gateways/{gatewayId}/heartbeat:
+    parameters:
+      - name: gatewayId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [HardwareGateways]
+      operationId: sendGatewayHeartbeat
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GatewayHeartbeatRequest'
+      responses:
+        '200':
+          description: Heartbeat acknowledged and status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayHeartbeatSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2453,5 +2595,272 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/FleetAnalyticsSummary'
+
+    HardwareGatewayItem:
+      type: object
+      required:
+        - id
+        - companyId
+        - deviceSerial
+        - firmwareVersion
+        - status
+        - bufferCapacityRecords
+        - reportingIntervalSeconds
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        vehicleId:
+          type: string
+          format: uuid
+          nullable: true
+        vehicleRegistrationNumber:
+          type: string
+          nullable: true
+        deviceSerial:
+          type: string
+        imei:
+          type: string
+          nullable: true
+        secureElementId:
+          type: string
+          nullable: true
+        firmwareVersion:
+          type: string
+        status:
+          type: string
+          enum: [REGISTERED, ACTIVE, OFFLINE, SUSPENDED]
+        lastHeartbeatAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastSyncEventId:
+          type: string
+          format: uuid
+          nullable: true
+        bufferCapacityRecords:
+          type: integer
+        reportingIntervalSeconds:
+          type: integer
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RegisterHardwareGatewayRequest:
+      type: object
+      required:
+        - deviceSerial
+        - hmacSecret
+      properties:
+        deviceSerial:
+          type: string
+        vehicleId:
+          type: string
+          format: uuid
+        imei:
+          type: string
+        secureElementId:
+          type: string
+        firmwareVersion:
+          type: string
+        hmacSecret:
+          type: string
+        bufferCapacityRecords:
+          type: integer
+          default: 10000
+        reportingIntervalSeconds:
+          type: integer
+          default: 5
+        metadata:
+          type: object
+          additionalProperties: true
+
+    GatewayOtaConfigResponse:
+      type: object
+      required:
+        - gatewayId
+        - deviceSerial
+        - firmwareVersion
+        - reportingIntervalSeconds
+        - bufferCapacityRecords
+        - maxEngineTemperatureCelsius
+        - minCargoTemperatureCelsius
+        - maxCargoTemperatureCelsius
+        - ingestionEndpoint
+        - serverTime
+      properties:
+        gatewayId:
+          type: string
+          format: uuid
+        deviceSerial:
+          type: string
+        firmwareVersion:
+          type: string
+        reportingIntervalSeconds:
+          type: integer
+        bufferCapacityRecords:
+          type: integer
+        activeTripId:
+          type: string
+          format: uuid
+          nullable: true
+        activeVehicleId:
+          type: string
+          format: uuid
+          nullable: true
+        maxEngineTemperatureCelsius:
+          type: number
+        minCargoTemperatureCelsius:
+          type: number
+        maxCargoTemperatureCelsius:
+          type: number
+        ingestionEndpoint:
+          type: string
+        serverTime:
+          type: string
+          format: date-time
+
+    GatewayBatchSyncRequest:
+      type: object
+      required:
+        - tripId
+        - syncMode
+        - records
+      properties:
+        tripId:
+          type: string
+          format: uuid
+        syncMode:
+          type: string
+          enum: [STREAM, OFFLINE_REPLAY, CELLULAR_HANDOFF]
+        networkCarrier:
+          type: string
+        signalRssi:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/TelemetryObservation'
+
+    GatewayBatchSyncResponse:
+      type: object
+      required:
+        - gatewayId
+        - tripId
+        - batchSize
+        - acceptedCount
+        - deduplicatedCount
+        - syncMode
+        - careEvaluated
+        - syncedAt
+      properties:
+        gatewayId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        batchSize:
+          type: integer
+        acceptedCount:
+          type: integer
+        deduplicatedCount:
+          type: integer
+        syncMode:
+          type: string
+        careEvaluated:
+          type: boolean
+        syncedAt:
+          type: string
+          format: date-time
+
+    GatewayHeartbeatRequest:
+      type: object
+      properties:
+        firmwareVersion:
+          type: string
+        batteryVoltage:
+          type: number
+        signalRssi:
+          type: integer
+        bufferedRecordsCount:
+          type: integer
+
+    GatewayHeartbeatResponse:
+      type: object
+      required:
+        - gatewayId
+        - status
+        - serverTime
+        - otaUpdateAvailable
+      properties:
+        gatewayId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        serverTime:
+          type: string
+          format: date-time
+        otaUpdateAvailable:
+          type: boolean
+
+    HardwareGatewayListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/HardwareGatewayItem'
+
+    HardwareGatewayItemSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/HardwareGatewayItem'
+
+    GatewayOtaConfigSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/GatewayOtaConfigResponse'
+
+    GatewayBatchSyncSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/GatewayBatchSyncResponse'
+
+    GatewayHeartbeatSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/GatewayHeartbeatResponse'
+
 
 

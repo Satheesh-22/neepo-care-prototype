@@ -4,6 +4,10 @@ import {
   type ComplianceExportFormat,
   type ComplianceExportManifest,
   type ComplianceExportType,
+  type GatewayBatchSyncResponse,
+  type GatewayHeartbeatResponse,
+  type GatewayOtaConfigResponse,
+  type HardwareGatewayItem,
   type LoginRequest,
   type NeepoApi,
   type Session,
@@ -324,6 +328,42 @@ export const liveApi: NeepoApi = {
       `/analytics/fleet${query}`,
       { headers: authorized(token) }
     );
+  },
+  listGateways: async (token) => {
+    return request<readonly HardwareGatewayItem[]>("/gateways", {
+      headers: authorized(token)
+    });
+  },
+  getGateway: async (gatewayId, token) => {
+    return request<HardwareGatewayItem>(`/gateways/${gatewayId}`, {
+      headers: authorized(token)
+    });
+  },
+  registerGateway: async (input, token) => {
+    return request<HardwareGatewayItem>("/gateways", {
+      method: "POST",
+      headers: authorized(token),
+      body: JSON.stringify(input)
+    });
+  },
+  getGatewayOtaConfig: async (gatewayId, token) => {
+    return request<GatewayOtaConfigResponse>(`/gateways/${gatewayId}/config`, {
+      headers: authorized(token)
+    });
+  },
+  syncGatewayBatch: async (gatewayId, input, token) => {
+    return request<GatewayBatchSyncResponse>(`/gateways/${gatewayId}/sync`, {
+      method: "POST",
+      headers: authorized(token),
+      body: JSON.stringify(input)
+    });
+  },
+  sendGatewayHeartbeat: async (gatewayId, input, token) => {
+    return request<GatewayHeartbeatResponse>(`/gateways/${gatewayId}/heartbeat`, {
+      method: "POST",
+      headers: authorized(token),
+      body: JSON.stringify(input)
+    });
   }
 };
 

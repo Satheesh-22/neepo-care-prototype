@@ -13,6 +13,12 @@ import type {
   DisruptionTrendPoint,
   FleetAnalyticsSummary,
   FleetAnalyticsTimeframe,
+  GatewayBatchSyncRequest,
+  GatewayBatchSyncResponse,
+  GatewayHeartbeatRequest,
+  GatewayHeartbeatResponse,
+  GatewayOtaConfigResponse,
+  HardwareGatewayItem,
   NotificationChannel,
   NotificationChannelType,
   NotificationDeliveryLog,
@@ -20,6 +26,7 @@ import type {
   NotificationTestResult,
   RecoveryPlan,
   RecoveryStrategyStat,
+  RegisterHardwareGatewayRequest,
   TelemetryObservation,
   TelemetryPolicyDecision,
   TelemetryPolicyRequest,
@@ -42,12 +49,19 @@ export type {
   DisruptionTrendPoint,
   FleetAnalyticsSummary,
   FleetAnalyticsTimeframe,
+  GatewayBatchSyncRequest,
+  GatewayBatchSyncResponse,
+  GatewayHeartbeatRequest,
+  GatewayHeartbeatResponse,
+  GatewayOtaConfigResponse,
+  HardwareGatewayItem,
   NotificationChannel,
   NotificationChannelType,
   NotificationDeliveryLog,
   NotificationDeliveryStatus,
   NotificationTestResult,
-  RecoveryStrategyStat
+  RecoveryStrategyStat,
+  RegisterHardwareGatewayRequest
 };
 
 export interface LoginRequest {
@@ -420,6 +434,14 @@ export interface NeepoApi {
     timeframe: FleetAnalyticsTimeframe | undefined,
     accessToken: string
   ): Promise<FleetAnalyticsSummary>;
+
+  // Hardware Gateways & Offline Resilience
+  listGateways(accessToken: string): Promise<readonly HardwareGatewayItem[]>;
+  getGateway(gatewayId: string, accessToken: string): Promise<HardwareGatewayItem>;
+  registerGateway(input: RegisterHardwareGatewayRequest, accessToken: string): Promise<HardwareGatewayItem>;
+  getGatewayOtaConfig(gatewayId: string, accessToken: string): Promise<GatewayOtaConfigResponse>;
+  syncGatewayBatch(gatewayId: string, input: GatewayBatchSyncRequest, accessToken: string): Promise<GatewayBatchSyncResponse>;
+  sendGatewayHeartbeat(gatewayId: string, input: GatewayHeartbeatRequest, accessToken: string): Promise<GatewayHeartbeatResponse>;
 }
 
 export class ApiClientError extends Error {
