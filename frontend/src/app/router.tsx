@@ -49,6 +49,7 @@ const AssignmentAdminPage = lazyWithRetry(() => import("../pages/AssignmentAdmin
 const DriverProfilePage = lazyWithRetry(() => import("../pages/DriverProfilePage").then((m) => ({ default: m.DriverProfilePage })));
 const FleetAnalyticsPage = lazyWithRetry(() => import("../pages/FleetAnalyticsPage").then((m) => ({ default: m.FleetAnalyticsPage })));
 const HardwareGatewayPage = lazyWithRetry(() => import("../pages/HardwareGatewayPage").then((m) => ({ default: m.HardwareGatewayPage })));
+const EnterpriseSsoPage = lazyWithRetry(() => import("../pages/EnterpriseSsoPage").then((m) => ({ default: m.EnterpriseSsoPage })));
 
 function LoadingView() {
   return <Stack alignItems="center" py={10}><CircularProgress aria-label="Loading workspace" /></Stack>;
@@ -107,6 +108,16 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={["ADMIN", "DISPATCHER"]}>
             <Deferred><CompanyProfilePage /></Deferred>
+          </RoleGuard>
+        )
+      },
+
+      // Enterprise SSO Administration (Admin only)
+      {
+        path: "/admin/sso",
+        element: (
+          <RoleGuard allowedRoles={["ADMIN"]}>
+            <Deferred><EnterpriseSsoPage /></Deferred>
           </RoleGuard>
         )
       },

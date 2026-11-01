@@ -25,6 +25,8 @@ tags:
   - name: Metrics
   - name: Notifications
   - name: Compliance
+  - name: HardwareGateways
+  - name: EnterpriseSSO
 
 paths:
   /auth/login:
@@ -988,6 +990,126 @@ paths:
                 $ref: '#/components/schemas/GatewayHeartbeatSuccessResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+
+  /auth/sso/discover:
+    get:
+      tags: [EnterpriseSSO]
+      security: []
+      operationId: discoverSsoConfig
+      x-implementation-status: implemented
+      parameters:
+        - name: email
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: domain
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SSO Discovery metadata for enterprise domain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SsoDiscoverySuccessResponse'
+
+  /auth/sso/callback:
+    post:
+      tags: [EnterpriseSSO]
+      security: []
+      operationId: processSsoCallback
+      x-implementation-status: implemented
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SsoLoginRequest'
+      responses:
+        '200':
+          description: SSO assertion verified and session token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SsoLoginSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/sso:
+    get:
+      tags: [EnterpriseSSO]
+      operationId: getCompanySsoConfig
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Enterprise SSO configuration for current company
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySsoConfigSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [EnterpriseSSO]
+      operationId: updateCompanySsoConfig
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompanySsoConfigRequest'
+      responses:
+        '200':
+          description: Enterprise SSO configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySsoConfigSuccessResponse'
+
+  /admin/sso/audit-logs:
+    get:
+      tags: [EnterpriseSSO]
+      operationId: listSsoAuditLogs
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: SSO authentication and provisioning audit events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SsoAuditLogListSuccessResponse'
+
+  /admin/sso/test:
+    post:
+      tags: [EnterpriseSSO]
+      operationId: testSsoConfiguration
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: SSO IdP connection test result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SsoTestResultSuccessResponse'
 
 components:
   securitySchemes:
@@ -2861,6 +2983,255 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/GatewayHeartbeatResponse'
+
+    SsoDiscoveryResponse:
+      type: object
+      required:
+        - ssoAvailable
+        - enforceSso
+      properties:
+        ssoAvailable:
+          type: boolean
+        domain:
+          type: string
+        companyId:
+          type: string
+          format: uuid
+        companyName:
+          type: string
+        idpType:
+          type: string
+          enum: [OIDC, SAML2]
+        idpIssuerUrl:
+          type: string
+        authorizationEndpoint:
+          type: string
+        enforceSso:
+          type: boolean
+
+    SsoLoginRequest:
+      type: object
+      required:
+        - email
+        - idpToken
+        - domain
+      properties:
+        email:
+          type: string
+          format: email
+        idpToken:
+          type: string
+        domain:
+          type: string
+
+    SsoLoginResponse:
+      type: object
+      required:
+        - accessToken
+        - expiresAt
+        - user
+        - isNewUser
+        - idpType
+      properties:
+        accessToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/User'
+        isNewUser:
+          type: boolean
+        idpType:
+          type: string
+
+    CompanySsoConfigResponse:
+      type: object
+      required:
+        - id
+        - companyId
+        - idpType
+        - idpIssuerUrl
+        - clientId
+        - ssoDomain
+        - enabled
+        - enforceSso
+        - jitProvisioningEnabled
+        - defaultRole
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        idpType:
+          type: string
+          enum: [OIDC, SAML2]
+        idpIssuerUrl:
+          type: string
+        clientId:
+          type: string
+        ssoDomain:
+          type: string
+        enabled:
+          type: boolean
+        enforceSso:
+          type: boolean
+        jitProvisioningEnabled:
+          type: boolean
+        defaultRole:
+          type: string
+          enum: [ADMIN, DISPATCHER, DRIVER]
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpdateCompanySsoConfigRequest:
+      type: object
+      required:
+        - idpType
+        - idpIssuerUrl
+        - clientId
+        - ssoDomain
+      properties:
+        idpType:
+          type: string
+          enum: [OIDC, SAML2]
+        idpIssuerUrl:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        ssoDomain:
+          type: string
+        enabled:
+          type: boolean
+        enforceSso:
+          type: boolean
+        jitProvisioningEnabled:
+          type: boolean
+        defaultRole:
+          type: string
+          enum: [ADMIN, DISPATCHER, DRIVER]
+        metadata:
+          type: object
+          additionalProperties: true
+
+    SsoAuditLogItem:
+      type: object
+      required:
+        - id
+        - companyId
+        - userEmail
+        - idpType
+        - eventType
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        userEmail:
+          type: string
+        idpType:
+          type: string
+        eventType:
+          type: string
+          enum: [LOGIN_SUCCESS, LOGIN_FAILED, USER_PROVISIONED, SSO_ENFORCED, CONFIG_UPDATED]
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+
+    SsoTestResultResponse:
+      type: object
+      required:
+        - success
+        - idpType
+        - issuerUrl
+        - latencyMs
+        - message
+        - testedAt
+      properties:
+        success:
+          type: boolean
+        idpType:
+          type: string
+        issuerUrl:
+          type: string
+        latencyMs:
+          type: number
+        message:
+          type: string
+        testedAt:
+          type: string
+          format: date-time
+
+    SsoDiscoverySuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/SsoDiscoveryResponse'
+
+    SsoLoginSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/SsoLoginResponse'
+
+    CompanySsoConfigSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/CompanySsoConfigResponse'
+
+    SsoAuditLogListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/SsoAuditLogItem'
+
+    SsoTestResultSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/SsoTestResultResponse'
+
 
 
 

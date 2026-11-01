@@ -1,6 +1,7 @@
 import type { ApiResult } from "@contracts";
 import {
   ApiClientError,
+  type CompanySsoConfigResponse,
   type ComplianceExportFormat,
   type ComplianceExportManifest,
   type ComplianceExportType,
@@ -11,6 +12,10 @@ import {
   type LoginRequest,
   type NeepoApi,
   type Session,
+  type SsoAuditLogItem,
+  type SsoDiscoveryResponse,
+  type SsoLoginResponse,
+  type SsoTestResultResponse,
   type UserAdminItem
 } from "./types";
 
@@ -363,6 +368,43 @@ export const liveApi: NeepoApi = {
       method: "POST",
       headers: authorized(token),
       body: JSON.stringify(input)
+    });
+  },
+
+  discoverSso: async ({ email, domain }) => {
+    const params = new URLSearchParams();
+    if (email) params.set("email", email);
+    if (domain) params.set("domain", domain);
+    const query = params.toString() ? `?${params.toString()}` : "";
+    return request<SsoDiscoveryResponse>(`/auth/sso/discover${query}`);
+  },
+  loginSso: async (req) => {
+    return request<SsoLoginResponse>("/auth/sso/callback", {
+      method: "POST",
+      body: JSON.stringify(req)
+    });
+  },
+  getCompanySsoConfig: async (token) => {
+    return request<CompanySsoConfigResponse>("/admin/sso", {
+      headers: authorized(token)
+    });
+  },
+  updateCompanySsoConfig: async (input, token) => {
+    return request<CompanySsoConfigResponse>("/admin/sso", {
+      method: "PUT",
+      headers: authorized(token),
+      body: JSON.stringify(input)
+    });
+  },
+  listSsoAuditLogs: async (token, limit = 50) => {
+    return request<readonly SsoAuditLogItem[]>(`/admin/sso/audit-logs?limit=${limit}`, {
+      headers: authorized(token)
+    });
+  },
+  testSsoConfiguration: async (token) => {
+    return request<SsoTestResultResponse>("/admin/sso/test", {
+      method: "POST",
+      headers: authorized(token)
     });
   }
 };

@@ -3,9 +3,9 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Milestones 1 through 5 Completed
+## Current Status: Milestones 1 through 6 Completed
 
-Milestones 1, 2, 3, 4, and 5 of the v1.1 roadmap have been implemented, integrated, and verified:
+Milestones 1, 2, 3, 4, 5, and 6 of the v1.1 roadmap have been implemented, integrated, and verified:
 
 1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**:
    - Added `GET /api/v1/trips/{tripId}/telemetry/history` with optional ISO-8601 bounds, limit clamping (1–2000), tenant isolation, and RBAC.
@@ -43,9 +43,21 @@ Milestones 1, 2, 3, 4, and 5 of the v1.1 roadmap have been implemented, integrat
    - Added `/gateways` route with RoleGuard (`ADMIN`, `DISPATCHER`) and navigation link in AppShell.
    - Verified test suites: 170/170 backend tests, 117/117 care-engine tests, 37/37 frontend tests, ESLint clean (0 errors), clean Vite PWA build, and foundation validator (V1–V11).
 
+6. **Multi-Tenant Enterprise Organization & SSO Integration (Milestone 6)**:
+   - Created Flyway migration `V12__create_enterprise_sso_domain.sql` defining `company_sso_configs` and `sso_audit_logs` with unique domain constraints, cascade rules, and seed configuration for demo company.
+   - Implemented `SsoService`, `SsoAuthController`, `SsoAdminController`, and password login SSO enforcement in `AuthService` (`checkSsoEnforcementForPasswordLogin`).
+   - Implemented endpoints `GET /api/v1/auth/sso/discover`, `POST /api/v1/auth/sso/callback`, `GET/PUT /api/v1/admin/sso`, `GET /api/v1/admin/sso/audit-logs`, and `POST /api/v1/admin/sso/test`.
+   - Built frontend `EnterpriseSsoPage.tsx` with KPI overview, IdP configuration form (OIDC / SAML 2.0), real-time IdP latency diagnostics, and tamper-evident SSO audit ledger.
+   - Integrated enterprise domain discovery and SSO enforcement into `LoginPage.tsx` (blocking password entry when SSO is enforced, offering quick federated sign-in).
+   - Added `/admin/sso` route protected with `RoleGuard(["ADMIN"])` and navigation link in `AppShell.tsx`.
+   - Verified test suites: 184/184 backend tests, 117/117 care-engine tests, 41/41 frontend tests, ESLint clean (0 errors), clean Vite PWA build, and foundation validator (V1–V12).
+
 ## Next Suggested Milestone
 
-1. **v1.1 Milestone 6: Multi-Tenant Enterprise Organization & SSO Integration**: SAML 2.0 / OIDC enterprise Single Sign-On, hierarchical multi-org fleet partitioning, and automated SCIM user provisioning.
+1. **v1.1 Milestone 7: Hierarchical Multi-Org Fleet Partitioning & Automated SCIM 2.0 User Provisioning**:
+   - Cross-tenant sub-organizations, depot boundaries, and hierarchical fleet partitioning (`sub_organizations`, `depots`).
+   - Automated SCIM 2.0 user & group synchronization (`/scim/v2/Users`, `/scim/v2/Groups`) for enterprise identity providers (Okta, Azure AD / Microsoft Entra ID).
+   - Granular RBAC scoping by organizational unit and depot assignment.
 
 ## Required Verification & Benchmark Commands
 

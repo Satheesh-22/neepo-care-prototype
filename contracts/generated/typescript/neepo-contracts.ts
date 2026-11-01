@@ -594,4 +594,83 @@ export interface GatewayHeartbeatResponse {
   readonly otaUpdateAvailable: boolean;
 }
 
+export type SsoIdpType = "OIDC" | "SAML2";
+export type SsoEventType = "LOGIN_SUCCESS" | "LOGIN_FAILED" | "USER_PROVISIONED" | "SSO_ENFORCED" | "CONFIG_UPDATED";
+
+export interface SsoDiscoveryResponse {
+  readonly ssoAvailable: boolean;
+  readonly domain?: string;
+  readonly companyId?: UUID;
+  readonly companyName?: string;
+  readonly idpType?: SsoIdpType;
+  readonly idpIssuerUrl?: string;
+  readonly authorizationEndpoint?: string;
+  readonly enforceSso: boolean;
+}
+
+export interface SsoLoginRequest {
+  readonly email: string;
+  readonly idpToken: string;
+  readonly domain: string;
+}
+
+export interface SsoLoginResponse {
+  readonly accessToken: string;
+  readonly expiresAt: IsoInstant;
+  readonly user: User;
+  readonly isNewUser: boolean;
+  readonly idpType: SsoIdpType;
+}
+
+export interface CompanySsoConfigResponse {
+  readonly id: UUID;
+  readonly companyId: UUID;
+  readonly idpType: SsoIdpType;
+  readonly idpIssuerUrl: string;
+  readonly clientId: string;
+  readonly ssoDomain: string;
+  readonly enabled: boolean;
+  readonly enforceSso: boolean;
+  readonly jitProvisioningEnabled: boolean;
+  readonly defaultRole: UserRole;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly createdAt: IsoInstant;
+  readonly updatedAt: IsoInstant;
+}
+
+export interface UpdateCompanySsoConfigRequest {
+  readonly idpType: SsoIdpType;
+  readonly idpIssuerUrl: string;
+  readonly clientId: string;
+  readonly clientSecret?: string;
+  readonly ssoDomain: string;
+  readonly enabled: boolean;
+  readonly enforceSso: boolean;
+  readonly jitProvisioningEnabled: boolean;
+  readonly defaultRole: UserRole;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface SsoAuditLogItem {
+  readonly id: UUID;
+  readonly companyId: UUID;
+  readonly userEmail: string;
+  readonly idpType: SsoIdpType;
+  readonly eventType: SsoEventType;
+  readonly ipAddress?: string;
+  readonly userAgent?: string;
+  readonly details?: Readonly<Record<string, unknown>>;
+  readonly createdAt: IsoInstant;
+}
+
+export interface SsoTestResultResponse {
+  readonly success: boolean;
+  readonly idpType: SsoIdpType;
+  readonly issuerUrl: string;
+  readonly latencyMs: number;
+  readonly message: string;
+  readonly testedAt: IsoInstant;
+}
+
+
 

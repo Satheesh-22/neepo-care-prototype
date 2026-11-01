@@ -6,6 +6,7 @@ import com.neepo.backend.dto.UserResponse;
 import com.neepo.backend.entity.User;
 import com.neepo.backend.exception.InvalidCredentialsException;
 import com.neepo.backend.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -28,21 +29,36 @@ public class AuthService {
     private final Clock clock;
     private final Duration tokenLifetime;
     private final String issuer;
+    private final SsoService ssoService;
 
     public AuthService(UserRepository users, PasswordEncoder passwords, JwtEncoder jwtEncoder,
                        Clock clock,
                        @Value("${neepo.security.jwt-expiration-minutes}") long expirationMinutes,
-                       @Value("${neepo.security.issuer}") String issuer) {
+                       @Value("${neepo.security.issuer}") String issuer,
+                       SsoService ssoService) {
         this.users = users;
         this.passwords = passwords;
         this.jwtEncoder = jwtEncoder;
         this.clock = clock;
         this.tokenLifetime = Duration.ofMinutes(expirationMinutes);
         this.issuer = issuer;
+        this.ssoService = ssoService;
     }
 
     public LoginResponse login(LoginRequest request) {
-        User user = users.findByEmailIgnoreCase(request.email().trim().toLowerCase(Locale.ROOT))
+        return login(request, null);
+    }
+
+    public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        String ipAddress = httpRequest != null ? httpRequest.getRemoteAddr() : "127.0.0.1";
+        String userAgent = httpRequest != null ? httpRequest.getHeader("User-Agent") : "StandardLogin/1.0";
+
+        if (ssoService != null) {
+            ssoService.checkSsoEnforcementForPasswordLogin(email, ipAddress, userAgent);
+        }
+
+        User user = users.findByEmailIgnoreCase(email)
                 .filter(User::isEnabled)
                 .filter(candidate -> passwords.matches(request.password(), candidate.getPasswordHash()))
                 .orElseThrow(InvalidCredentialsException::new);

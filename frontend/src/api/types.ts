@@ -1,5 +1,6 @@
 import type {
   ApiError,
+  CompanySsoConfigResponse,
   ComplianceExportFormat,
   ComplianceExportManifest,
   ComplianceExportPackage,
@@ -27,16 +28,25 @@ import type {
   RecoveryPlan,
   RecoveryStrategyStat,
   RegisterHardwareGatewayRequest,
+  SsoAuditLogItem,
+  SsoDiscoveryResponse,
+  SsoEventType,
+  SsoIdpType,
+  SsoLoginRequest,
+  SsoLoginResponse,
+  SsoTestResultResponse,
   TelemetryObservation,
   TelemetryPolicyDecision,
   TelemetryPolicyRequest,
   Trip,
+  UpdateCompanySsoConfigRequest,
   User,
   UserRole,
   UUID
 } from "@contracts";
 
 export type {
+  CompanySsoConfigResponse,
   ComplianceExportFormat,
   ComplianceExportManifest,
   ComplianceExportPackage,
@@ -61,7 +71,15 @@ export type {
   NotificationDeliveryStatus,
   NotificationTestResult,
   RecoveryStrategyStat,
-  RegisterHardwareGatewayRequest
+  RegisterHardwareGatewayRequest,
+  SsoAuditLogItem,
+  SsoDiscoveryResponse,
+  SsoEventType,
+  SsoIdpType,
+  SsoLoginRequest,
+  SsoLoginResponse,
+  SsoTestResultResponse,
+  UpdateCompanySsoConfigRequest
 };
 
 export interface LoginRequest {
@@ -442,6 +460,14 @@ export interface NeepoApi {
   getGatewayOtaConfig(gatewayId: string, accessToken: string): Promise<GatewayOtaConfigResponse>;
   syncGatewayBatch(gatewayId: string, input: GatewayBatchSyncRequest, accessToken: string): Promise<GatewayBatchSyncResponse>;
   sendGatewayHeartbeat(gatewayId: string, input: GatewayHeartbeatRequest, accessToken: string): Promise<GatewayHeartbeatResponse>;
+
+  // Enterprise SSO Integration
+  discoverSso(query: { email?: string; domain?: string }): Promise<SsoDiscoveryResponse>;
+  loginSso(request: SsoLoginRequest): Promise<SsoLoginResponse>;
+  getCompanySsoConfig(accessToken: string): Promise<CompanySsoConfigResponse>;
+  updateCompanySsoConfig(input: UpdateCompanySsoConfigRequest, accessToken: string): Promise<CompanySsoConfigResponse>;
+  listSsoAuditLogs(accessToken: string, limit?: number): Promise<readonly SsoAuditLogItem[]>;
+  testSsoConfiguration(accessToken: string): Promise<SsoTestResultResponse>;
 }
 
 export class ApiClientError extends Error {

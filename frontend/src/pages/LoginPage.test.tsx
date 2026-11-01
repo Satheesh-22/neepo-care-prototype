@@ -14,9 +14,9 @@ describe("login page", () => {
     useAuthStore.setState({ session: null });
   });
 
-  it("starts a demo session and enters the protected workspace", async () => {
-    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
-    render(
+  const renderComponent = () => {
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false }, queries: { retry: false } } });
+    return render(
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={client}>
           <MemoryRouter initialEntries={["/login"]}>
@@ -28,10 +28,32 @@ describe("login page", () => {
         </QueryClientProvider>
       </ThemeProvider>
     );
+  };
 
-    await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
+  it("starts a demo session and enters the protected workspace", async () => {
+    renderComponent();
+
+    await userEvent.click(screen.getByRole("button", { name: /sign in to operations/i }));
 
     expect(await screen.findByText("Protected operations workspace")).toBeInTheDocument();
     expect(useAuthStore.getState().session?.user.role).toBe("DISPATCHER");
+  });
+
+  it("discovers enterprise SSO and allows federated sign in", async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    const emailInput = screen.getByLabelText(/email address/i);
+    await user.clear(emailInput);
+    await user.type(emailInput, "dispatcher@neepo.com");
+
+    const matchingElements = await screen.findAllByText(/NEEPO Enterprise Solutions/i);
+    expect(matchingElements.length).toBeGreaterThan(0);
+
+    const ssoSignInBtn = await screen.findByRole("button", { name: /or sign in with oidc sso/i });
+    await user.click(ssoSignInBtn);
+
+    expect(await screen.findByText("Protected operations workspace")).toBeInTheDocument();
+    expect(useAuthStore.getState().session?.user.email).toBe("dispatcher@neepo.com");
   });
 });

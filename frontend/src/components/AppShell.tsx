@@ -11,6 +11,7 @@ import PeopleRounded from "@mui/icons-material/PeopleRounded";
 import PersonPinRounded from "@mui/icons-material/PersonPinRounded";
 import RouterRounded from "@mui/icons-material/RouterRounded";
 import SensorsRounded from "@mui/icons-material/SensorsRounded";
+import ShieldRounded from "@mui/icons-material/ShieldRounded";
 import SyncRounded from "@mui/icons-material/SyncRounded";
 import WifiOffRounded from "@mui/icons-material/WifiOffRounded";
 import Box from "@mui/material/Box";
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ? [
           { label: "Dashboard", path: "/", icon: <DashboardRounded sx={{ fontSize: 18 }} /> },
           { label: "Company", path: "/admin/company", icon: <BusinessRounded sx={{ fontSize: 18 }} /> },
+          { label: "Enterprise SSO", path: "/admin/sso", icon: <ShieldRounded sx={{ fontSize: 18 }} /> },
           { label: "Users", path: "/admin/users", icon: <PeopleRounded sx={{ fontSize: 18 }} /> },
           { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
           { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },

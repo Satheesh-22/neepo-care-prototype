@@ -1,6 +1,7 @@
 import type { DecisionExplanation, PlanEvaluation, RecoveryPlan, Trip, User, UserRole } from "@contracts";
 import type {
   CompanyProfile,
+  CompanySsoConfigResponse,
   ComplianceExportManifest,
   CreateNotificationChannelRequest,
   DriverDetailed,
@@ -11,6 +12,7 @@ import type {
   NotificationChannel,
   NotificationDeliveryLog,
   NotificationTestResult,
+  SsoAuditLogItem,
   TelemetryHistoryPoint,
   UserAdminItem,
   VehicleDetailed
@@ -63,6 +65,61 @@ const mockGateways: Mutable<HardwareGatewayItem>[] = [
     },
     createdAt: "2026-08-01T00:00:00Z",
     updatedAt: "2026-08-24T09:15:20Z"
+  }
+];
+
+let mockCompanySsoConfig: Mutable<CompanySsoConfigResponse> = {
+  id: "00000000-0000-4000-9100-000000000001",
+  companyId: "00000000-0000-4000-8000-000000000001",
+  idpType: "OIDC",
+  idpIssuerUrl: "https://auth.neepo-enterprise.com/oidc",
+  clientId: "neepo-care-enterprise-client-id",
+  ssoDomain: "neepo.com",
+  enabled: true,
+  enforceSso: false,
+  jitProvisioningEnabled: true,
+  defaultRole: "DISPATCHER",
+  metadata: {
+    providerName: "Okta Enterprise Workforce",
+    redirectUri: "https://care.neepo.com/auth/sso/callback"
+  },
+  createdAt: "2026-11-01T12:00:00Z",
+  updatedAt: "2026-11-01T12:00:00Z"
+};
+
+const mockSsoAuditLogs: Mutable<SsoAuditLogItem>[] = [
+  {
+    id: "00000000-0000-4000-9200-000000000001",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    userEmail: "dispatcher@neepo.com",
+    idpType: "OIDC",
+    eventType: "LOGIN_SUCCESS",
+    ipAddress: "192.168.1.105",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0",
+    details: { provider: "Okta", sessionExpiresIn: 28800 },
+    createdAt: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    id: "00000000-0000-4000-9200-000000000002",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    userEmail: "driver.lead@neepo.com",
+    idpType: "OIDC",
+    eventType: "USER_PROVISIONED",
+    ipAddress: "192.168.1.110",
+    userAgent: "Mozilla/5.0 (Android 14; Mobile)",
+    details: { jitRole: "DISPATCHER", initialStatus: "ACTIVE" },
+    createdAt: new Date(Date.now() - 7200000).toISOString()
+  },
+  {
+    id: "00000000-0000-4000-9200-000000000003",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    userEmail: "admin@neepo.com",
+    idpType: "OIDC",
+    eventType: "CONFIG_UPDATED",
+    ipAddress: "10.0.0.5",
+    userAgent: "AdminConsole/2.0",
+    details: { enforceSso: false, defaultRole: "DISPATCHER" },
+    createdAt: new Date(Date.now() - 18000000).toISOString()
   }
 ];
 
@@ -1332,6 +1389,97 @@ export const mockApi: NeepoApi = {
       status: "ACTIVE",
       serverTime: new Date().toISOString(),
       otaUpdateAvailable: false
+    };
+  },
+
+  discoverSso: async ({ email, domain }) => {
+    const targetDomain = domain ?? (email ? email.split("@")[1] : undefined);
+    if (targetDomain && targetDomain.toLowerCase() === mockCompanySsoConfig.ssoDomain.toLowerCase() && mockCompanySsoConfig.enabled) {
+      return {
+        ssoAvailable: true,
+        domain: mockCompanySsoConfig.ssoDomain,
+        companyId: mockCompanySsoConfig.companyId,
+        companyName: "NEEPO Enterprise Solutions",
+        idpType: mockCompanySsoConfig.idpType,
+        idpIssuerUrl: mockCompanySsoConfig.idpIssuerUrl,
+        authorizationEndpoint: `${mockCompanySsoConfig.idpIssuerUrl}/oauth2/v1/authorize`,
+        enforceSso: mockCompanySsoConfig.enforceSso
+      };
+    }
+    return {
+      ssoAvailable: false,
+      domain: targetDomain,
+      enforceSso: false
+    };
+  },
+  loginSso: async (request) => {
+    const userEmail = request.email.toLowerCase();
+    const domain = request.domain.toLowerCase();
+    if (domain !== mockCompanySsoConfig.ssoDomain.toLowerCase()) {
+      throw new Error(`SSO not configured for domain ${domain}`);
+    }
+    const isNew = !userEmail.includes("dispatcher");
+    const user: User = {
+      id: "00000000-0000-4000-8000-000000000002",
+      name: userEmail.split("@")[0].replace(".", " "),
+      email: userEmail,
+      phone: "+15550100000",
+      role: mockCompanySsoConfig.defaultRole,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockSsoAuditLogs.unshift({
+      id: `00000000-0000-4000-9200-${Date.now().toString(16).padStart(12, "0")}`,
+      companyId: mockCompanySsoConfig.companyId,
+      userEmail,
+      idpType: mockCompanySsoConfig.idpType,
+      eventType: isNew ? "USER_PROVISIONED" : "LOGIN_SUCCESS",
+      ipAddress: "127.0.0.1",
+      userAgent: "Browser/Demo",
+      details: { role: user.role, isNewUser: isNew },
+      createdAt: new Date().toISOString()
+    });
+    return {
+      accessToken: "mock-sso-jwt-token-access-bearer",
+      expiresAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
+      user,
+      isNewUser: isNew,
+      idpType: mockCompanySsoConfig.idpType
+    };
+  },
+  getCompanySsoConfig: async () => {
+    return { ...mockCompanySsoConfig };
+  },
+  updateCompanySsoConfig: async (input) => {
+    mockCompanySsoConfig = {
+      ...mockCompanySsoConfig,
+      ...input,
+      updatedAt: new Date().toISOString()
+    };
+    mockSsoAuditLogs.unshift({
+      id: `00000000-0000-4000-9200-${Date.now().toString(16).padStart(12, "0")}`,
+      companyId: mockCompanySsoConfig.companyId,
+      userEmail: "admin@neepo.com",
+      idpType: input.idpType,
+      eventType: "CONFIG_UPDATED",
+      ipAddress: "127.0.0.1",
+      userAgent: "AdminConsole/2.0",
+      details: { enforceSso: input.enforceSso, defaultRole: input.defaultRole },
+      createdAt: new Date().toISOString()
+    });
+    return { ...mockCompanySsoConfig };
+  },
+  listSsoAuditLogs: async (_token, limit = 50) => {
+    return mockSsoAuditLogs.slice(0, limit);
+  },
+  testSsoConfiguration: async () => {
+    return {
+      success: true,
+      idpType: mockCompanySsoConfig.idpType,
+      issuerUrl: mockCompanySsoConfig.idpIssuerUrl,
+      latencyMs: 24.8,
+      message: "Successfully reached OpenID discovery endpoint. TLS handshake and SAML metadata validated.",
+      testedAt: new Date().toISOString()
     };
   }
 };

@@ -24,6 +24,6 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request,
                                              HttpServletRequest httpRequest) {
-        return ApiResponse.success(authService.login(request), TraceIdFilter.traceId(httpRequest));
+        return ApiResponse.success(authService.login(request, httpRequest), TraceIdFilter.traceId(httpRequest));
     }
 }
