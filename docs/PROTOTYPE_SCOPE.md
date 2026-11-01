@@ -54,6 +54,19 @@ The prototype is complete only when the end-to-end scenario runs from repeatable
 - Passing backend, frontend and integration tests
 - Recorded baseline metrics and dated invention evidence
 
+## v1.1 Extended Production Scope & Enterprise Capabilities
+
+All eight v1.1 roadmap milestones have been implemented, integrated, and verified on `feature/full-stack-integration`:
+
+1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**: ISO-8601 bounded time-series scrubber, Leaflet breadcrumb trail, dynamic vehicle tracking, and $1\times, 2\times, 5\times$ speed multipliers.
+2. **Multi-Channel Real-Time Alerting & Webhooks Engine (Milestone 2 - Flyway V8)**: HMAC-SHA256 signature verification (`X-Neepo-Signature`), severity threshold suppression, secret masking, and delivery logs.
+3. **Cryptographic Audit & Compliance Evidence Exports (Milestone 3 - Flyway V9)**: Multi-format packaging (`JSON_LD`, `CSV`, `PRINTABLE_HTML`), SHA-256 tamper-evident digest verification, and FDA 21 CFR Part 11 / EU GDP guidelines alignment.
+4. **Fleet Reliability & Cost-Avoidance Analytics (Milestone 4 - Flyway V10)**: Dynamic timeframe aggregation (7D, 30D, 90D), MTTR, driver compliance, cargo cost avoidance, telematics root causes, and CARE strategy efficiency.
+5. **Hardware Gateway Fleet Pilot & Offline Resilience (Milestone 5 - Flyway V11)**: ESP32-S3 edge gateway provisioning, ATECC608A cryptographic signature verification, Winbond 32MB SPI flash circular queue offline buffering, idempotent deduplication, and dynamic safety/cold-chain envelope resolution.
+6. **Multi-Tenant Enterprise Organization & SSO Integration (Milestone 6 - Flyway V12)**: OIDC & SAML 2.0 federation, domain discovery, JIT user provisioning, password bypass blocking, live IdP latency diagnostics, and tamper-evident SSO audit ledger.
+7. **Hierarchical Multi-Org Fleet Partitioning & Automated SCIM 2.0 Provisioning (Milestone 7 - Flyway V13)**: Cold-chain depot boundary partitioning, facility vehicle/driver stationing, capacity utilization tracking, RFC 7643 / RFC 7644 user lifecycle synchronization, ServiceProviderConfig & Schemas, Bearer token management, and interactive `DepotsPage.tsx` console.
+8. **Accessibility (WCAG 2.1 AA) Compliance & Multi-Language i18n Localization (Milestone 8)**: Skip-to-content keyboard bypass, ARIA landmarks, polite & assertive `LiveAnnouncer` live regions for telematics alerts, high-contrast 7:1+ theme mode, large text scaling, 100% parity English and Spanish translation bundles, parameter interpolation, language toggle, and accessibility preferences menu.
+
 ## Scope control
 
 Shared contracts and this scope require team review before change. A milestone must not claim a planned endpoint or mock workflow is implemented.
