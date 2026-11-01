@@ -47,6 +47,7 @@ const VehicleListPage = lazyWithRetry(() => import("../pages/VehicleListPage").t
 const VehicleCreatePage = lazyWithRetry(() => import("../pages/VehicleCreatePage").then((m) => ({ default: m.VehicleCreatePage })));
 const AssignmentAdminPage = lazyWithRetry(() => import("../pages/AssignmentAdminPage").then((m) => ({ default: m.AssignmentAdminPage })));
 const DriverProfilePage = lazyWithRetry(() => import("../pages/DriverProfilePage").then((m) => ({ default: m.DriverProfilePage })));
+const FleetAnalyticsPage = lazyWithRetry(() => import("../pages/FleetAnalyticsPage").then((m) => ({ default: m.FleetAnalyticsPage })));
 
 function LoadingView() {
   return <Stack alignItems="center" py={10}><CircularProgress aria-label="Loading workspace" /></Stack>;
@@ -82,6 +83,14 @@ export const router = createBrowserRouter([
       { path: "/trips/:tripId", element: <Deferred><TripWorkspacePage /></Deferred>, errorElement: <RouteErrorBoundary /> },
       { path: "/driver/trips/:tripId", element: <Deferred><DriverTripPage /></Deferred>, errorElement: <RouteErrorBoundary /> },
       { path: "/simulator/trips/:tripId", element: <Deferred><DriverTripPage /></Deferred>, errorElement: <RouteErrorBoundary /> },
+      {
+        path: "/analytics",
+        element: (
+          <RoleGuard allowedRoles={["ADMIN", "DISPATCHER"]}>
+            <Deferred><FleetAnalyticsPage /></Deferred>
+          </RoleGuard>
+        )
+      },
 
       // Company Profile (Admin only for edits; visible to permitted)
       {

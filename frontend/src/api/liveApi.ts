@@ -317,6 +317,13 @@ export const liveApi: NeepoApi = {
       verifiedAt: raw.verifiedAt,
       message: raw.message
     };
+  },
+  getFleetAnalytics: async (timeframe, token) => {
+    const query = timeframe ? `?timeframe=${encodeURIComponent(timeframe)}` : "";
+    return request(
+      `/analytics/fleet${query}`,
+      { headers: authorized(token) }
+    );
   }
 };
 

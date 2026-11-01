@@ -8,13 +8,18 @@ import type {
   ComplianceVerificationResult,
   CreateNotificationChannelRequest,
   DecisionExplanation,
+  DisruptionRootCauseStat,
   DisruptionSeverity,
+  DisruptionTrendPoint,
+  FleetAnalyticsSummary,
+  FleetAnalyticsTimeframe,
   NotificationChannel,
   NotificationChannelType,
   NotificationDeliveryLog,
   NotificationDeliveryStatus,
   NotificationTestResult,
   RecoveryPlan,
+  RecoveryStrategyStat,
   TelemetryObservation,
   TelemetryPolicyDecision,
   TelemetryPolicyRequest,
@@ -32,12 +37,17 @@ export type {
   ComplianceVerificationRequest,
   ComplianceVerificationResult,
   CreateNotificationChannelRequest,
+  DisruptionRootCauseStat,
   DisruptionSeverity,
+  DisruptionTrendPoint,
+  FleetAnalyticsSummary,
+  FleetAnalyticsTimeframe,
   NotificationChannel,
   NotificationChannelType,
   NotificationDeliveryLog,
   NotificationDeliveryStatus,
-  NotificationTestResult
+  NotificationTestResult,
+  RecoveryStrategyStat
 };
 
 export interface LoginRequest {
@@ -404,6 +414,12 @@ export interface NeepoApi {
     request: ComplianceVerificationRequest,
     accessToken: string
   ): Promise<ComplianceVerificationResult>;
+
+  // Fleet Reliability & Cost-Avoidance Analytics
+  getFleetAnalytics(
+    timeframe: FleetAnalyticsTimeframe | undefined,
+    accessToken: string
+  ): Promise<FleetAnalyticsSummary>;
 }
 
 export class ApiClientError extends Error {

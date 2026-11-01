@@ -2,6 +2,7 @@ import AccessTimeRounded from "@mui/icons-material/AccessTimeRounded";
 import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import CloudOffRounded from "@mui/icons-material/CloudOffRounded";
+import InsightsRounded from "@mui/icons-material/InsightsRounded";
 import LocalShippingRounded from "@mui/icons-material/LocalShippingRounded";
 import NotificationsActiveRounded from "@mui/icons-material/NotificationsActiveRounded";
 import RouteRounded from "@mui/icons-material/RouteRounded";
@@ -301,6 +302,17 @@ export function DashboardPage() {
 
                   {!isDriver && (
                     <>
+                      <Button
+                        component={Link}
+                        to="/analytics"
+                        variant="outlined"
+                        size="large"
+                        startIcon={<InsightsRounded />}
+                        sx={{ py: 1.2, borderRadius: 3 }}
+                      >
+                        Fleet Analytics & MTTR
+                      </Button>
+
                       <Button
                         component={Link}
                         to={`/simulator/trips/${trip.data.id}`}

@@ -195,8 +195,8 @@ for field in sorted(TRIP_CONTEXT_FIELDS):
         fail(f"TripContext field is inconsistent: {field}")
 
 migrations = sorted(
-    path.name
-    for path in (ROOT / "backend/src/main/resources/db/migration").glob("V*.sql")
+    [path.name for path in (ROOT / "backend/src/main/resources/db/migration").glob("V*.sql")],
+    key=lambda name: int(re.match(r"^V(\d+)", name).group(1)) if re.match(r"^V(\d+)", name) else 0
 )
 expected_migrations = [
     "V1__create_identity_foundation.sql",
@@ -208,6 +208,7 @@ expected_migrations = [
     "V7__create_onboarding_and_administration_domain.sql",
     "V8__create_alerting_and_notification_domain.sql",
     "V9__create_compliance_and_audit_manifest_domain.sql",
+    "V10__create_fleet_analytics_domain.sql",
 ]
 if migrations != expected_migrations:
     fail(f"unexpected Flyway migration order: {migrations}")

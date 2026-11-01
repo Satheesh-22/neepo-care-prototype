@@ -3,9 +3,9 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Milestone 1, Milestone 2 & Milestone 3 (v1.1 P1) Completed
+## Current Status: Milestone 1, Milestone 2, Milestone 3 & Milestone 4 Completed
 
-Milestones 1, 2, and 3 of the v1.1 roadmap have been implemented, integrated, and verified:
+Milestones 1, 2, 3, and 4 of the v1.1 roadmap have been implemented, integrated, and verified:
 
 1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**:
    - Added `GET /api/v1/trips/{tripId}/telemetry/history` with optional ISO-8601 bounds, limit clamping (1–2000), tenant isolation, and RBAC.
@@ -28,10 +28,16 @@ Milestones 1, 2, and 3 of the v1.1 roadmap have been implemented, integrated, an
    - Created `ComplianceExportModal.tsx` in frontend with Export Generator, bit-level Cryptographic Tamper Verifier, and Audit Ledger views, integrated into `TripWorkspacePage.tsx`.
    - Verified test suites: 157/157 backend tests, 117/117 care-engine tests, 31/31 frontend tests, and clean foundation validator (V1–V9).
 
+4. **Fleet Reliability & Cost-Avoidance Analytics (Milestone 4)**:
+   - Created Flyway migration `V10__create_fleet_analytics_domain.sql` defining `fleet_analytics_snapshots` with JSONB metrics and pre-seeded 7d, 30d, 90d baseline data.
+   - Implemented `FleetAnalyticsService` and `AnalyticsController` with `GET /api/v1/analytics/fleet` supporting dynamic interval selection (`7d`, `30d`, `90d`), MTTR, driver compliance, preserved cargo valuation, telematics root causes, and CARE strategy efficiency.
+   - Integrated `FleetAnalyticsPage.tsx` with interactive timeframe controls, executive KPI cards, root-cause distribution bars, incident progression trend, and solver strategy table.
+   - Added `/analytics` route with RoleGuard (`ADMIN`, `DISPATCHER`) and navigation link in AppShell.
+   - Verified test suites: 162/162 backend tests, 117/117 care-engine tests, 33/33 frontend tests, production PWA build, and foundation validator (V1–V10).
+
 ## Next Suggested Milestone
 
-1. **v1.1 Milestone 4 (P2): Fleet Reliability & Cost-Avoidance Analytics**: Materialized aggregate views and executive metrics tracking Mean Time to Recovery (MTTR), driver compliance rates, and estimated cost avoidance across chosen intervals.
-2. **v1.1 Milestone 5 (P2): Hardware Gateway Fleet Pilot & Offline Resilience**: End-to-end telemetry ingestion from cellular hardware gateways with dead-zone NOR flash buffer replay.
+1. **v1.1 Milestone 5 (P2): Hardware Gateway Fleet Pilot & Offline Resilience**: End-to-end telemetry ingestion from cellular hardware gateways with dead-zone NOR flash buffer replay, reconnect deduplication, and remote configuration over-the-air.
 
 ## Required Verification & Benchmark Commands
 

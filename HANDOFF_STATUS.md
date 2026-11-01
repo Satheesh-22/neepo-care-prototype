@@ -11,8 +11,9 @@
 - Authenticated, one-use WebSocket tickets and post-commit telemetry events: implemented
 - Adaptive telemetry policy, offline synchronization and reconnect de-duplication: implemented
 - PostgreSQL/PostGIS, Redis, Spring Boot and Nginx containers: healthy
-- Flyway: nine immutable ordered migrations (V1–V9), validated against clean ephemeral database and persistent development volume
+- Flyway: ten immutable ordered migrations (V1–V10), validated against clean ephemeral database and persistent development volume
 - Cryptographic Audit & Compliance Evidence Exports (v1.1 Milestone 3 - FDA 21 CFR Part 11 & EU GDP Guidelines): implemented (tamper-evident SHA-256 manifests, multi-format export packaging in JSON-LD, CSV, and Printable HTML, verification API with `X-Neepo-Digest`, and interactive Tamper Verifier UI)
+- Fleet Reliability & Cost-Avoidance Analytics (v1.1 Milestone 4 - P2): implemented (materialized snapshot aggregation, Mean Time to Recovery tracking, driver compliance rates, preserved cargo valuation, root-cause distribution, interval trend breakdown, CARE strategy efficiency, RBAC-protected `GET /api/v1/analytics/fleet`, and interactive `FleetAnalyticsPage.tsx` with 7D/30D/90D timeframes)
 - Release automation, clean-database migration test, and GitHub Actions CI: implemented
 - Production readiness & deployment hardening: audited, benchmarked, and documented
 - Production operations & IaC manifests: implemented (Kubernetes manifests, External Secrets Operator, staging deployment CI/CD, disposable backup/restore drill, Prometheus alert rules, Grafana dashboard, zero-downtime rollback validation suite, hardware gateway bench prototype)
@@ -20,17 +21,18 @@
 
 ## Verification evidence
 
-Verified on 28 October 2026:
+Verified on 31 October 2026:
 
-- Backend `test`: 157 tests passed, 0 failures, 0 errors, 0 skipped
+- Backend `test`: 162 tests passed, 0 failures, 0 errors, 0 skipped
 - CARE-engine `test`: 117 tests passed, 0 failures, 0 errors, 0 skipped
-- Frontend: ESLint clean (0 warnings), 31 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
+- Frontend: ESLint clean (0 warnings), 33 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
 - High-Resolution Telemetry History & Route Replay (v1.1 P1 Milestone 1): implemented (`GET /api/v1/trips/{tripId}/telemetry/history`, `TelemetryReplayScrubber.tsx`, dynamic Leaflet vehicle tracking, breadcrumb trail polylines, overheating warning badges, and $1\times, 2\times, 5\times$ speed multipliers)
 - Multi-Channel Real-Time Alerting & Webhooks Engine (v1.1 P1 Milestone 2): implemented (`GET/POST /api/v1/notifications/channels`, `DELETE /api/v1/notifications/channels/{channelId}`, `POST /api/v1/notifications/channels/{channelId}/test`, `GET /api/v1/notifications/logs`, `NotificationSettingsModal.tsx`, HMAC-SHA256 signature verification `X-Neepo-Signature`, severity threshold suppression, secret masking, demo mock dispatches, Flyway V8 migration)
 - Cryptographic Audit & Compliance Evidence Exports (v1.1 P1 Milestone 3): implemented (`POST /api/v1/compliance/exports/trip/{tripId}`, `GET /api/v1/compliance/exports`, `GET /api/v1/compliance/exports/{manifestId}`, `POST /api/v1/compliance/exports/{manifestId}/verify`, `ComplianceExportModal.tsx`, multi-format `JSON_LD` linked data, `CSV` archive, `PRINTABLE_HTML` dossier with regulatory badges, SHA-256 tamper-evident digest verification, and Flyway V9 migration)
+- Fleet Reliability & Cost-Avoidance Analytics (v1.1 P2 Milestone 4): implemented (`GET /api/v1/analytics/fleet`, `FleetAnalyticsService`, `FleetAnalyticsRepository`, `FleetAnalyticsSnapshot`, `FleetAnalyticsPage.tsx`, 7D/30D/90D interval toggling, MTTR, driver compliance, cargo cost avoidance, telematics root-cause progress bars, incident progression trend, CARE strategy table, and Flyway V10 migration)
 - Web-page Style & Data Visualization: implemented (Design tokens & theme refinement, Dashboard operations & latency overview with sparklines, Telemetry gauges with thermal & cold-chain zones, interactive Leaflet route & incident map with detour lines, CARE multi-attribute decision comparison & timeline, and Demo Mode presentation controller)
-- Role-based Onboarding & Admin Pages: implemented (`/admin/company`, `/admin/users`, `/admin/drivers`, `/admin/drivers/new`, `/admin/vehicles`, `/admin/vehicles/new`, `/admin/assignments`, `/driver/profile`, `/invite/accept`, `/forbidden`)
-- Foundation validator (`scripts/validate-foundation.py`): passed (V1–V9 verified)
+- Role-based Onboarding & Admin Pages: implemented (`/admin/company`, `/admin/users`, `/admin/drivers`, `/admin/drivers/new`, `/admin/vehicles`, `/admin/vehicles/new`, `/admin/assignments`, `/driver/profile`, `/invite/accept`, `/forbidden`, `/analytics`)
+- Foundation validator (`scripts/validate-foundation.py`): passed (V1–V10 verified)
 - Docker Compose configuration: valid
 - Frontend `/health`: HTTP 200
 - Backend `/actuator/health`: `UP`

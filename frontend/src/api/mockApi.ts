@@ -957,9 +957,9 @@ export const mockApi: NeepoApi = {
   // Compliance & Audit Evidence APIs
   async generateComplianceExport(tripId, exportType, exportFormat) {
     await delay();
-    let rawPayload = "";
-    let mediaType = "application/json";
-    let filename = `compliance-${tripId.substring(0, 8)}.${exportFormat.toLowerCase()}`;
+    let rawPayload: string;
+    let mediaType: string;
+    let filename: string;
     const timestamp = new Date().toISOString();
 
     if (exportFormat === "JSON_LD") {
@@ -1090,6 +1090,108 @@ export const mockApi: NeepoApi = {
       message: valid
         ? "Cryptographic verification passed. Payload bit-level integrity verified against tamper-evident manifest."
         : "Tamper detected! Computed SHA-256 digest does not match the signed manifest digest."
+    };
+  },
+
+  async getFleetAnalytics(timeframe = "30d") {
+    await delay();
+    if (timeframe === "7d") {
+      return {
+        companyId: "00000000-0000-4000-8000-000000000001",
+        timeframe: "7d" as const,
+        generatedAt: new Date().toISOString(),
+        totalTripsMonitored: 14,
+        activeDisruptionsCount: 1,
+        resolvedDisruptionsCount: 8,
+        meanTimeToRecoveryMinutes: 18.5,
+        driverComplianceRate: 98.2,
+        estimatedCostAvoidanceUsd: 34200.0,
+        savedTransitHours: 42.5,
+        spoilageAvoidanceRate: 100.0,
+        topDisruptionRootCauses: [
+          { cause: "Coolant & Thermal Limit Exceeded", count: 4, percentage: 44.4, averageResolutionMinutes: 16.0 },
+          { cause: "Corridor Blockage & Congestion", count: 2, percentage: 22.2, averageResolutionMinutes: 24.5 },
+          { cause: "Refrigeration Cold-Chain Drift", count: 2, percentage: 22.2, averageResolutionMinutes: 14.0 },
+          { cause: "Mandatory Rest Window Required", count: 1, percentage: 11.1, averageResolutionMinutes: 45.0 }
+        ],
+        disruptionTrend: [
+          { period: "Day 1", disruptionCount: 1, resolvedCount: 1, costAvoidedUsd: 4200.0 },
+          { period: "Day 2", disruptionCount: 2, resolvedCount: 2, costAvoidedUsd: 7800.0 },
+          { period: "Day 3", disruptionCount: 0, resolvedCount: 0, costAvoidedUsd: 0.0 },
+          { period: "Day 4", disruptionCount: 1, resolvedCount: 1, costAvoidedUsd: 5100.0 },
+          { period: "Day 5", disruptionCount: 2, resolvedCount: 2, costAvoidedUsd: 8600.0 },
+          { period: "Day 6", disruptionCount: 1, resolvedCount: 1, costAvoidedUsd: 3900.0 },
+          { period: "Day 7", disruptionCount: 2, resolvedCount: 1, costAvoidedUsd: 4600.0 }
+        ],
+        recoveryStrategyBreakdown: [
+          { strategyName: "Safe Parking & Mobile Mechanic", usageCount: 4, successRate: 100.0, averageCostAvoidanceUsd: 8200.0 },
+          { strategyName: "Authorized Workshop Repair", usageCount: 3, successRate: 100.0, averageCostAvoidanceUsd: 9500.0 },
+          { strategyName: "Substitute Vehicle Cargo Transfer", usageCount: 1, successRate: 100.0, averageCostAvoidanceUsd: 16500.0 }
+        ]
+      };
+    }
+    if (timeframe === "90d") {
+      return {
+        companyId: "00000000-0000-4000-8000-000000000001",
+        timeframe: "90d" as const,
+        generatedAt: new Date().toISOString(),
+        totalTripsMonitored: 196,
+        activeDisruptionsCount: 1,
+        resolvedDisruptionsCount: 112,
+        meanTimeToRecoveryMinutes: 23.4,
+        driverComplianceRate: 95.4,
+        estimatedCostAvoidanceUsd: 435000.0,
+        savedTransitHours: 564.0,
+        spoilageAvoidanceRate: 98.9,
+        topDisruptionRootCauses: [
+          { cause: "Coolant & Thermal Limit Exceeded", count: 52, percentage: 46.0, averageResolutionMinutes: 18.2 },
+          { cause: "Corridor Blockage & Congestion", count: 28, percentage: 24.8, averageResolutionMinutes: 27.4 },
+          { cause: "Refrigeration Cold-Chain Drift", count: 21, percentage: 18.6, averageResolutionMinutes: 16.0 },
+          { cause: "Mandatory Rest Window Required", count: 12, percentage: 10.6, averageResolutionMinutes: 51.0 }
+        ],
+        disruptionTrend: [
+          { period: "Month 1", disruptionCount: 38, resolvedCount: 38, costAvoidedUsd: 142000.0 },
+          { period: "Month 2", disruptionCount: 37, resolvedCount: 37, costAvoidedUsd: 144500.0 },
+          { period: "Month 3", disruptionCount: 38, resolvedCount: 37, costAvoidedUsd: 148500.0 }
+        ],
+        recoveryStrategyBreakdown: [
+          { strategyName: "Safe Parking & Mobile Mechanic", usageCount: 58, successRate: 96.5, averageCostAvoidanceUsd: 7650.0 },
+          { strategyName: "Authorized Workshop Repair", usageCount: 36, successRate: 100.0, averageCostAvoidanceUsd: 8800.0 },
+          { strategyName: "Substitute Vehicle Cargo Transfer", usageCount: 14, successRate: 92.8, averageCostAvoidanceUsd: 14600.0 },
+          { strategyName: "Rest Window Re-assignment", usageCount: 5, successRate: 100.0, averageCostAvoidanceUsd: 3200.0 }
+        ]
+      };
+    }
+    return {
+      companyId: "00000000-0000-4000-8000-000000000001",
+      timeframe: "30d" as const,
+      generatedAt: new Date().toISOString(),
+      totalTripsMonitored: 68,
+      activeDisruptionsCount: 1,
+      resolvedDisruptionsCount: 37,
+      meanTimeToRecoveryMinutes: 21.2,
+      driverComplianceRate: 96.8,
+      estimatedCostAvoidanceUsd: 148500.0,
+      savedTransitHours: 186.0,
+      spoilageAvoidanceRate: 99.4,
+      topDisruptionRootCauses: [
+        { cause: "Coolant & Thermal Limit Exceeded", count: 18, percentage: 47.4, averageResolutionMinutes: 17.5 },
+        { cause: "Corridor Blockage & Congestion", count: 9, percentage: 23.7, averageResolutionMinutes: 26.0 },
+        { cause: "Refrigeration Cold-Chain Drift", count: 7, percentage: 18.4, averageResolutionMinutes: 15.2 },
+        { cause: "Mandatory Rest Window Required", count: 4, percentage: 10.5, averageResolutionMinutes: 48.0 }
+      ],
+      disruptionTrend: [
+        { period: "Week 1", disruptionCount: 9, resolvedCount: 9, costAvoidedUsd: 38400.0 },
+        { period: "Week 2", disruptionCount: 11, resolvedCount: 11, costAvoidedUsd: 44200.0 },
+        { period: "Week 3", disruptionCount: 8, resolvedCount: 8, costAvoidedUsd: 31500.0 },
+        { period: "Week 4", disruptionCount: 10, resolvedCount: 9, costAvoidedUsd: 34400.0 }
+      ],
+      recoveryStrategyBreakdown: [
+        { strategyName: "Safe Parking & Mobile Mechanic", usageCount: 19, successRate: 94.7, averageCostAvoidanceUsd: 7800.0 },
+        { strategyName: "Authorized Workshop Repair", usageCount: 12, successRate: 100.0, averageCostAvoidanceUsd: 8900.0 },
+        { strategyName: "Substitute Vehicle Cargo Transfer", usageCount: 5, successRate: 100.0, averageCostAvoidanceUsd: 14200.0 },
+        { strategyName: "Rest Window Re-assignment", usageCount: 2, successRate: 100.0, averageCostAvoidanceUsd: 3100.0 }
+      ]
     };
   }
 };

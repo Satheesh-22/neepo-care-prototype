@@ -821,6 +821,32 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /analytics/fleet:
+    get:
+      tags: [Analytics]
+      operationId: getFleetAnalytics
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: timeframe
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [7d, 30d, 90d]
+            default: 30d
+          description: Aggregation timeframe window
+      responses:
+        '200':
+          description: Executive fleet reliability and recovery cost avoidance metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FleetAnalyticsSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2323,5 +2349,109 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/ComplianceVerificationResult'
+
+    DisruptionRootCauseStat:
+      type: object
+      required: [cause, count, percentage, averageResolutionMinutes]
+      properties:
+        cause:
+          type: string
+        count:
+          type: integer
+        percentage:
+          type: number
+        averageResolutionMinutes:
+          type: number
+
+    DisruptionTrendPoint:
+      type: object
+      required: [period, disruptionCount, resolvedCount, costAvoidedUsd]
+      properties:
+        period:
+          type: string
+        disruptionCount:
+          type: integer
+        resolvedCount:
+          type: integer
+        costAvoidedUsd:
+          type: number
+
+    RecoveryStrategyStat:
+      type: object
+      required: [strategyName, usageCount, successRate, averageCostAvoidanceUsd]
+      properties:
+        strategyName:
+          type: string
+        usageCount:
+          type: integer
+        successRate:
+          type: number
+        averageCostAvoidanceUsd:
+          type: number
+
+    FleetAnalyticsSummary:
+      type: object
+      required:
+        - companyId
+        - timeframe
+        - generatedAt
+        - totalTripsMonitored
+        - activeDisruptionsCount
+        - resolvedDisruptionsCount
+        - meanTimeToRecoveryMinutes
+        - driverComplianceRate
+        - estimatedCostAvoidanceUsd
+        - savedTransitHours
+        - spoilageAvoidanceRate
+        - topDisruptionRootCauses
+        - disruptionTrend
+        - recoveryStrategyBreakdown
+      properties:
+        companyId:
+          type: string
+          format: uuid
+        timeframe:
+          type: string
+          enum: [7d, 30d, 90d]
+        generatedAt:
+          type: string
+          format: date-time
+        totalTripsMonitored:
+          type: integer
+        activeDisruptionsCount:
+          type: integer
+        resolvedDisruptionsCount:
+          type: integer
+        meanTimeToRecoveryMinutes:
+          type: number
+        driverComplianceRate:
+          type: number
+        estimatedCostAvoidanceUsd:
+          type: number
+        savedTransitHours:
+          type: number
+        spoilageAvoidanceRate:
+          type: number
+        topDisruptionRootCauses:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisruptionRootCauseStat'
+        disruptionTrend:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisruptionTrendPoint'
+        recoveryStrategyBreakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecoveryStrategyStat'
+
+    FleetAnalyticsSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/FleetAnalyticsSummary'
 
 

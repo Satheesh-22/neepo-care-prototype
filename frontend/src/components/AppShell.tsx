@@ -3,6 +3,7 @@ import AssignmentIndRounded from "@mui/icons-material/AssignmentIndRounded";
 import BusinessRounded from "@mui/icons-material/BusinessRounded";
 import DashboardRounded from "@mui/icons-material/DashboardRounded";
 import DirectionsCarRounded from "@mui/icons-material/DirectionsCarRounded";
+import InsightsRounded from "@mui/icons-material/InsightsRounded";
 import LocalShippingRounded from "@mui/icons-material/LocalShippingRounded";
 import LogoutRounded from "@mui/icons-material/LogoutRounded";
 import NotificationsRounded from "@mui/icons-material/NotificationsRounded";
@@ -57,12 +58,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
           { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },
           { label: "Assignments", path: "/admin/assignments", icon: <AssignmentIndRounded sx={{ fontSize: 18 }} /> },
+          { label: "Analytics", path: "/analytics", icon: <InsightsRounded sx={{ fontSize: 18 }} /> },
           { label: "Workspace", path: `/trips/${DEMO_TRIP_ID}`, icon: <LocalShippingRounded sx={{ fontSize: 18 }} /> },
           { label: "Simulator", path: `/simulator/trips/${DEMO_TRIP_ID}`, icon: <SensorsRounded sx={{ fontSize: 18 }} /> }
         ]
       : role === "DISPATCHER"
         ? [
             { label: "Dashboard", path: "/", icon: <DashboardRounded sx={{ fontSize: 18 }} /> },
+            { label: "Analytics", path: "/analytics", icon: <InsightsRounded sx={{ fontSize: 18 }} /> },
             { label: "Workspace", path: `/trips/${DEMO_TRIP_ID}`, icon: <LocalShippingRounded sx={{ fontSize: 18 }} /> },
             { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
             { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },

@@ -472,3 +472,43 @@ export interface ComplianceVerificationResult {
   readonly message?: string;
 }
 
+export type FleetAnalyticsTimeframe = "7d" | "30d" | "90d";
+
+export interface DisruptionRootCauseStat {
+  readonly cause: string;
+  readonly count: number;
+  readonly percentage: number;
+  readonly averageResolutionMinutes: number;
+}
+
+export interface DisruptionTrendPoint {
+  readonly period: string;
+  readonly disruptionCount: number;
+  readonly resolvedCount: number;
+  readonly costAvoidedUsd: number;
+}
+
+export interface RecoveryStrategyStat {
+  readonly strategyName: string;
+  readonly usageCount: number;
+  readonly successRate: number;
+  readonly averageCostAvoidanceUsd: number;
+}
+
+export interface FleetAnalyticsSummary {
+  readonly companyId: UUID;
+  readonly timeframe: FleetAnalyticsTimeframe;
+  readonly generatedAt: IsoInstant;
+  readonly totalTripsMonitored: number;
+  readonly activeDisruptionsCount: number;
+  readonly resolvedDisruptionsCount: number;
+  readonly meanTimeToRecoveryMinutes: number;
+  readonly driverComplianceRate: number;
+  readonly estimatedCostAvoidanceUsd: number;
+  readonly savedTransitHours: number;
+  readonly spoilageAvoidanceRate: number;
+  readonly topDisruptionRootCauses: readonly DisruptionRootCauseStat[];
+  readonly disruptionTrend: readonly DisruptionTrendPoint[];
+  readonly recoveryStrategyBreakdown: readonly RecoveryStrategyStat[];
+}
+
