@@ -93,3 +93,4 @@ describe("DepotsPage", () => {
     await user.click(cancelBtn);
   });
 });
+

@@ -28,3 +28,4 @@ export function useAnnounce() {
   const announceFn = useAnnounceStore((s) => s.announce);
   return { announce: announceFn };
 }
+
