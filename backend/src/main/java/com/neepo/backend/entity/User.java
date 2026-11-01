@@ -27,6 +27,12 @@ public class User {
     @Column(name = "company_id")
     private UUID companyId;
 
+    @Column(name = "depot_id")
+    private UUID depotId;
+
+    @Column(name = "scim_external_id", length = 256)
+    private String scimExternalId;
+
     @Column(nullable = false, length = 100)
     private String name;
 
@@ -153,12 +159,32 @@ public class User {
         return companyId;
     }
 
+    public UUID getDepotId() {
+        return depotId;
+    }
+
+    public void setDepotId(UUID depotId) {
+        this.depotId = depotId;
+    }
+
+    public String getScimExternalId() {
+        return scimExternalId;
+    }
+
+    public void setScimExternalId(String scimExternalId) {
+        this.scimExternalId = scimExternalId;
+    }
+
     public String getName() {
         return name;
     }
 
     public String getEmail() {
         return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPhone() {

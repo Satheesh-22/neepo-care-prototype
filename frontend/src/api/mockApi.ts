@@ -4,6 +4,7 @@ import type {
   CompanySsoConfigResponse,
   ComplianceExportManifest,
   CreateNotificationChannelRequest,
+  DepotResponse,
   DriverDetailed,
   DriverVehicleAssignment,
   HardwareGatewayItem,
@@ -12,6 +13,7 @@ import type {
   NotificationChannel,
   NotificationDeliveryLog,
   NotificationTestResult,
+  ScimStatusResponse,
   SsoAuditLogItem,
   TelemetryHistoryPoint,
   UserAdminItem,
@@ -593,6 +595,76 @@ const mockComplianceManifests: ComplianceExportManifest[] = [
 const delay = async () =>
   new Promise((resolve) => window.setTimeout(resolve, typeof window !== "undefined" && (window as unknown as { __VITEST_ENVIRONMENT__?: unknown }).__VITEST_ENVIRONMENT__ ? 0 : 80));
 const acceptedTelemetry = new Set<string>();
+
+let mockDepots: DepotResponse[] = [
+  {
+    id: "00000000-0000-4000-8400-000000000001",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    code: "DEPOT-HQ-01",
+    name: "Seattle Central Cold Chain Depot",
+    address: "1000 Logistics Way, Industrial District",
+    city: "Seattle",
+    state: "WA",
+    postalCode: "98134",
+    latitude: 47.58,
+    longitude: -122.33,
+    capacity: 45,
+    status: "ACTIVE",
+    contactPhone: "+12065550191",
+    contactEmail: "seattle-depot@neepo.com",
+    assignedVehiclesCount: 8,
+    assignedDriversCount: 12,
+    createdAt: "2026-08-01T08:00:00Z",
+    updatedAt: "2026-08-01T08:00:00Z"
+  },
+  {
+    id: "00000000-0000-4000-8400-000000000002",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    code: "DEPOT-PORT-02",
+    name: "Portland Distribution Hub",
+    address: "4500 Riverfront Expressway",
+    city: "Portland",
+    state: "OR",
+    postalCode: "97210",
+    latitude: 45.54,
+    longitude: -122.69,
+    capacity: 30,
+    status: "ACTIVE",
+    contactPhone: "+15035550182",
+    contactEmail: "portland-hub@neepo.com",
+    assignedVehiclesCount: 5,
+    assignedDriversCount: 7,
+    createdAt: "2026-08-05T09:30:00Z",
+    updatedAt: "2026-08-05T09:30:00Z"
+  },
+  {
+    id: "00000000-0000-4000-8400-000000000003",
+    companyId: "00000000-0000-4000-8000-000000000001",
+    code: "DEPOT-SPOK-03",
+    name: "Spokane Inland Cold Logistics",
+    address: "880 North Aerospace Way",
+    city: "Spokane",
+    state: "WA",
+    postalCode: "99224",
+    latitude: 47.65,
+    longitude: -117.42,
+    capacity: 25,
+    status: "MAINTENANCE",
+    contactPhone: "+15095550143",
+    contactEmail: "spokane-depot@neepo.com",
+    assignedVehiclesCount: 2,
+    assignedDriversCount: 3,
+    createdAt: "2026-08-10T11:15:00Z",
+    updatedAt: "2026-08-10T11:15:00Z"
+  }
+];
+
+let mockScimStatus: ScimStatusResponse = {
+  enabled: true,
+  tokenPrefix: "scim_live_demo12...",
+  scimBaseUrl: "https://api.neepo-care.local/api/v1/scim/v2",
+  provisionedUsersCount: 14
+};
 
 export const mockApi: NeepoApi = {
   async login(request: LoginRequest) {
@@ -1480,6 +1552,93 @@ export const mockApi: NeepoApi = {
       latencyMs: 24.8,
       message: "Successfully reached OpenID discovery endpoint. TLS handshake and SAML metadata validated.",
       testedAt: new Date().toISOString()
+    };
+  },
+
+  // Fleet Depots & Partitioning
+  listDepots: async () => {
+    return [...mockDepots];
+  },
+  getDepot: async (depotId) => {
+    const found = mockDepots.find(d => d.id === depotId);
+    if (!found) throw new Error("Depot not found.");
+    return { ...found };
+  },
+  createDepot: async (input) => {
+    const newDepot: DepotResponse = {
+      id: `00000000-0000-4000-8400-${Date.now().toString(16).padStart(12, "0")}`,
+      companyId: "00000000-0000-4000-8000-000000000001",
+      code: input.code.toUpperCase().trim(),
+      name: input.name.trim(),
+      address: input.address.trim(),
+      city: input.city.trim(),
+      state: input.state ?? null,
+      postalCode: input.postalCode ?? null,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      capacity: input.capacity,
+      status: input.status ?? "ACTIVE",
+      contactPhone: input.contactPhone ?? null,
+      contactEmail: input.contactEmail ?? null,
+      assignedVehiclesCount: 0,
+      assignedDriversCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockDepots.push(newDepot);
+    return { ...newDepot };
+  },
+  updateDepot: async (depotId, input) => {
+    const index = mockDepots.findIndex(d => d.id === depotId);
+    if (index === -1) throw new Error("Depot not found.");
+    const existing = mockDepots[index];
+    mockDepots[index] = {
+      ...existing,
+      code: input.code ? input.code.toUpperCase().trim() : existing.code,
+      name: input.name ? input.name.trim() : existing.name,
+      address: input.address ? input.address.trim() : existing.address,
+      city: input.city ? input.city.trim() : existing.city,
+      state: input.state !== undefined ? input.state : existing.state,
+      postalCode: input.postalCode !== undefined ? input.postalCode : existing.postalCode,
+      latitude: input.latitude !== undefined && input.latitude !== null ? input.latitude : existing.latitude,
+      longitude: input.longitude !== undefined && input.longitude !== null ? input.longitude : existing.longitude,
+      capacity: input.capacity !== undefined && input.capacity !== null ? input.capacity : existing.capacity,
+      status: input.status ? input.status : existing.status,
+      contactPhone: input.contactPhone !== undefined ? input.contactPhone : existing.contactPhone,
+      contactEmail: input.contactEmail !== undefined ? input.contactEmail : existing.contactEmail,
+      updatedAt: new Date().toISOString()
+    };
+    return { ...mockDepots[index] };
+  },
+  deleteDepot: async (depotId) => {
+    mockDepots = mockDepots.filter(d => d.id !== depotId);
+  },
+
+  // SCIM 2.0 User Provisioning
+  getScimStatus: async () => {
+    return { ...mockScimStatus };
+  },
+  generateScimToken: async () => {
+    const rawToken = "scim_live_" + Array.from({ length: 48 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+    const prefix = rawToken.substring(0, 16) + "...";
+    mockScimStatus = {
+      ...mockScimStatus,
+      enabled: true,
+      tokenPrefix: prefix
+    };
+    return {
+      token: rawToken,
+      prefix,
+      scimBaseUrl: mockScimStatus.scimBaseUrl,
+      enabled: true,
+      generatedAt: new Date().toISOString()
+    };
+  },
+  revokeScimToken: async () => {
+    mockScimStatus = {
+      ...mockScimStatus,
+      enabled: false,
+      tokenPrefix: null
     };
   }
 };

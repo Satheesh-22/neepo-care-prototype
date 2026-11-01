@@ -7,8 +7,11 @@ import type {
   ComplianceExportType,
   ComplianceVerificationRequest,
   ComplianceVerificationResult,
+  CreateDepotRequest,
   CreateNotificationChannelRequest,
   DecisionExplanation,
+  DepotResponse,
+  DepotStatus,
   DisruptionRootCauseStat,
   DisruptionSeverity,
   DisruptionTrendPoint,
@@ -28,6 +31,8 @@ import type {
   RecoveryPlan,
   RecoveryStrategyStat,
   RegisterHardwareGatewayRequest,
+  ScimStatusResponse,
+  ScimTokenResponse,
   SsoAuditLogItem,
   SsoDiscoveryResponse,
   SsoEventType,
@@ -40,6 +45,7 @@ import type {
   TelemetryPolicyRequest,
   Trip,
   UpdateCompanySsoConfigRequest,
+  UpdateDepotRequest,
   User,
   UserRole,
   UUID
@@ -53,7 +59,10 @@ export type {
   ComplianceExportType,
   ComplianceVerificationRequest,
   ComplianceVerificationResult,
+  CreateDepotRequest,
   CreateNotificationChannelRequest,
+  DepotResponse,
+  DepotStatus,
   DisruptionRootCauseStat,
   DisruptionSeverity,
   DisruptionTrendPoint,
@@ -72,6 +81,8 @@ export type {
   NotificationTestResult,
   RecoveryStrategyStat,
   RegisterHardwareGatewayRequest,
+  ScimStatusResponse,
+  ScimTokenResponse,
   SsoAuditLogItem,
   SsoDiscoveryResponse,
   SsoEventType,
@@ -79,7 +90,8 @@ export type {
   SsoLoginRequest,
   SsoLoginResponse,
   SsoTestResultResponse,
-  UpdateCompanySsoConfigRequest
+  UpdateCompanySsoConfigRequest,
+  UpdateDepotRequest
 };
 
 export interface LoginRequest {
@@ -468,6 +480,18 @@ export interface NeepoApi {
   updateCompanySsoConfig(input: UpdateCompanySsoConfigRequest, accessToken: string): Promise<CompanySsoConfigResponse>;
   listSsoAuditLogs(accessToken: string, limit?: number): Promise<readonly SsoAuditLogItem[]>;
   testSsoConfiguration(accessToken: string): Promise<SsoTestResultResponse>;
+
+  // Fleet Depots & Partitioning
+  listDepots(accessToken: string): Promise<readonly DepotResponse[]>;
+  getDepot(depotId: string, accessToken: string): Promise<DepotResponse>;
+  createDepot(input: CreateDepotRequest, accessToken: string): Promise<DepotResponse>;
+  updateDepot(depotId: string, input: UpdateDepotRequest, accessToken: string): Promise<DepotResponse>;
+  deleteDepot(depotId: string, accessToken: string): Promise<void>;
+
+  // SCIM 2.0 User Provisioning
+  getScimStatus(accessToken: string): Promise<ScimStatusResponse>;
+  generateScimToken(accessToken: string): Promise<ScimTokenResponse>;
+  revokeScimToken(accessToken: string): Promise<void>;
 }
 
 export class ApiClientError extends Error {

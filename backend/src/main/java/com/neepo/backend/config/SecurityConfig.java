@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
@@ -37,13 +38,17 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/sso/**",
+                                "/api/v1/scim/v2/**",
                                 "/api/v1/users/invitations/accept",
                                 "/ws",
                                 "/actuator/health/**",
                                 "/actuator/info"
                         ).permitAll()
                         .requestMatchers("/api/v1/admin/sso", "/api/v1/admin/sso/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/scim", "/api/v1/admin/scim/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/depots", "/api/v1/admin/depots/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/company", "/api/v1/company/me").hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
+                        .requestMatchers("/api/v1/depots", "/api/v1/depots/**").hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
                         .requestMatchers("/api/v1/company/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/users/**").hasAnyRole("ADMIN", "DISPATCHER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/drivers/me").hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
@@ -65,7 +70,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/telemetry").hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
                         .requestMatchers("/api/v1/disruptions").hasAnyRole("ADMIN", "DISPATCHER", "DRIVER")
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                .oauth2ResourceServer(oauth -> oauth
+                        .bearerTokenResolver(request -> {
+                            String path = request.getRequestURI();
+                            if (path != null && path.startsWith("/api/v1/scim/v2")) {
+                                return null;
+                            }
+                            DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
+                            return resolver.resolve(request);
+                        })
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint((request, response, exception) ->
                                 writeError(response, 401, "UNAUTHORIZED",
                                         "Authentication is required.", TraceIdFilter.traceId(request))))

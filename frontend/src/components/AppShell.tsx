@@ -13,6 +13,7 @@ import RouterRounded from "@mui/icons-material/RouterRounded";
 import SensorsRounded from "@mui/icons-material/SensorsRounded";
 import ShieldRounded from "@mui/icons-material/ShieldRounded";
 import SyncRounded from "@mui/icons-material/SyncRounded";
+import WarehouseRounded from "@mui/icons-material/WarehouseRounded";
 import WifiOffRounded from "@mui/icons-material/WifiOffRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -60,6 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           { label: "Users", path: "/admin/users", icon: <PeopleRounded sx={{ fontSize: 18 }} /> },
           { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
           { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },
+          { label: "Depots", path: "/admin/depots", icon: <WarehouseRounded sx={{ fontSize: 18 }} /> },
           { label: "Assignments", path: "/admin/assignments", icon: <AssignmentIndRounded sx={{ fontSize: 18 }} /> },
           { label: "Gateways", path: "/gateways", icon: <RouterRounded sx={{ fontSize: 18 }} /> },
           { label: "Analytics", path: "/analytics", icon: <InsightsRounded sx={{ fontSize: 18 }} /> },
@@ -73,6 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             { label: "Workspace", path: `/trips/${DEMO_TRIP_ID}`, icon: <LocalShippingRounded sx={{ fontSize: 18 }} /> },
             { label: "Drivers", path: "/admin/drivers", icon: <PersonPinRounded sx={{ fontSize: 18 }} /> },
             { label: "Vehicles", path: "/admin/vehicles", icon: <DirectionsCarRounded sx={{ fontSize: 18 }} /> },
+            { label: "Depots", path: "/admin/depots", icon: <WarehouseRounded sx={{ fontSize: 18 }} /> },
             { label: "Assignments", path: "/admin/assignments", icon: <AssignmentIndRounded sx={{ fontSize: 18 }} /> },
             { label: "Gateways", path: "/gateways", icon: <RouterRounded sx={{ fontSize: 18 }} /> },
             { label: "Simulator", path: `/simulator/trips/${DEMO_TRIP_ID}`, icon: <SensorsRounded sx={{ fontSize: 18 }} /> }

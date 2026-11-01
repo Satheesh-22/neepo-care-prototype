@@ -5,12 +5,15 @@ import {
   type ComplianceExportFormat,
   type ComplianceExportManifest,
   type ComplianceExportType,
+  type DepotResponse,
   type GatewayBatchSyncResponse,
   type GatewayHeartbeatResponse,
   type GatewayOtaConfigResponse,
   type HardwareGatewayItem,
   type LoginRequest,
   type NeepoApi,
+  type ScimStatusResponse,
+  type ScimTokenResponse,
   type Session,
   type SsoAuditLogItem,
   type SsoDiscoveryResponse,
@@ -404,6 +407,57 @@ export const liveApi: NeepoApi = {
   testSsoConfiguration: async (token) => {
     return request<SsoTestResultResponse>("/admin/sso/test", {
       method: "POST",
+      headers: authorized(token)
+    });
+  },
+
+  // Fleet Depots & Partitioning
+  listDepots: async (token) => {
+    return request<readonly DepotResponse[]>("/depots", {
+      headers: authorized(token)
+    });
+  },
+  getDepot: async (depotId, token) => {
+    return request<DepotResponse>(`/depots/${depotId}`, {
+      headers: authorized(token)
+    });
+  },
+  createDepot: async (input, token) => {
+    return request<DepotResponse>("/admin/depots", {
+      method: "POST",
+      headers: authorized(token),
+      body: JSON.stringify(input)
+    });
+  },
+  updateDepot: async (depotId, input, token) => {
+    return request<DepotResponse>(`/admin/depots/${depotId}`, {
+      method: "PUT",
+      headers: authorized(token),
+      body: JSON.stringify(input)
+    });
+  },
+  deleteDepot: async (depotId, token) => {
+    return request<void>(`/admin/depots/${depotId}`, {
+      method: "DELETE",
+      headers: authorized(token)
+    });
+  },
+
+  // SCIM 2.0 User Provisioning
+  getScimStatus: async (token) => {
+    return request<ScimStatusResponse>("/admin/scim/status", {
+      headers: authorized(token)
+    });
+  },
+  generateScimToken: async (token) => {
+    return request<ScimTokenResponse>("/admin/scim/token", {
+      method: "POST",
+      headers: authorized(token)
+    });
+  },
+  revokeScimToken: async (token) => {
+    return request<void>("/admin/scim/token", {
+      method: "DELETE",
       headers: authorized(token)
     });
   }

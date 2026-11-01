@@ -57,6 +57,15 @@ public class CompanySsoConfig {
     @Column(name = "default_role", nullable = false, length = 32)
     private UserRole defaultRole = UserRole.DISPATCHER;
 
+    @Column(name = "scim_enabled", nullable = false)
+    private boolean scimEnabled = false;
+
+    @Column(name = "scim_token_hash", length = 128)
+    private String scimTokenHash;
+
+    @Column(name = "scim_token_prefix", length = 32)
+    private String scimTokenPrefix;
+
     @Column(name = "metadata", columnDefinition = "jsonb")
     private String metadata = "{}";
 
@@ -181,6 +190,30 @@ public class CompanySsoConfig {
 
     public void setDefaultRole(UserRole defaultRole) {
         this.defaultRole = defaultRole;
+    }
+
+    public boolean isScimEnabled() {
+        return scimEnabled;
+    }
+
+    public void setScimEnabled(boolean scimEnabled) {
+        this.scimEnabled = scimEnabled;
+    }
+
+    public String getScimTokenHash() {
+        return scimTokenHash;
+    }
+
+    public void setScimTokenHash(String scimTokenHash) {
+        this.scimTokenHash = scimTokenHash;
+    }
+
+    public String getScimTokenPrefix() {
+        return scimTokenPrefix;
+    }
+
+    public void setScimTokenPrefix(String scimTokenPrefix) {
+        this.scimTokenPrefix = scimTokenPrefix;
     }
 
     public String getMetadata() {

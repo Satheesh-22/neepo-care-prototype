@@ -3,9 +3,9 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Milestones 1 through 6 Completed
+## Current Status: Milestones 1 through 7 Completed
 
-Milestones 1, 2, 3, 4, 5, and 6 of the v1.1 roadmap have been implemented, integrated, and verified:
+Milestones 1, 2, 3, 4, 5, 6, and 7 of the v1.1 roadmap have been implemented, integrated, and verified:
 
 1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**:
    - Added `GET /api/v1/trips/{tripId}/telemetry/history` with optional ISO-8601 bounds, limit clamping (1–2000), tenant isolation, and RBAC.
@@ -52,12 +52,22 @@ Milestones 1, 2, 3, 4, 5, and 6 of the v1.1 roadmap have been implemented, integ
    - Added `/admin/sso` route protected with `RoleGuard(["ADMIN"])` and navigation link in `AppShell.tsx`.
    - Verified test suites: 184/184 backend tests, 117/117 care-engine tests, 41/41 frontend tests, ESLint clean (0 errors), clean Vite PWA build, and foundation validator (V1–V12).
 
+7. **Hierarchical Multi-Org Fleet Partitioning & Automated SCIM 2.0 User Provisioning (Milestone 7)**:
+   - Created Flyway migration `V13__create_depots_and_scim_domain.sql` defining `depots` table (with latitude, longitude, capacity, code unique constraint), partitioned foreign keys on `vehicles(depot_id)` and `users(depot_id)`, SCIM external IDs on `users(scim_external_id)`, and SCIM token configuration in `company_sso_configs`.
+   - Implemented `DepotService` and `DepotController` with `GET /api/v1/depots`, `GET /api/v1/depots/{id}`, `POST /api/v1/admin/depots`, `PUT /api/v1/admin/depots/{id}`, and `DELETE /api/v1/admin/depots/{id}` with capacity utilization calculations and tenant scoping.
+   - Implemented `ScimService`, `ScimAdminController`, and `ScimV2Controller` (`GET /ServiceProviderConfig`, `GET /Schemas`, `GET /Users`, `POST /Users`, `GET /Users/{id}`, `PUT /Users/{id}`, `PATCH /Users/{id}`, `DELETE /Users/{id}`) implementing RFC 7643 & RFC 7644 user lifecycle synchronization with SHA-256 token authentication.
+   - Configured Spring Security custom `BearerTokenResolver` to leave SCIM tokens intact without OAuth2 JWT rejection.
+   - Integrated `DepotsPage.tsx` console with KPI cards, facilities ledger table, capacity bars, filter/search, and Add/Edit Depot dialog.
+   - Integrated SCIM token management & IdP setup instructions into `EnterpriseSsoPage.tsx`.
+   - Added `/admin/depots` route with `RoleGuard(["ADMIN", "DISPATCHER"])` and navigation link in `AppShell.tsx`.
+   - Verified test suites: 196/196 backend tests, 117/117 care-engine tests, 45/45 frontend tests, ESLint clean (0 errors), clean Vite PWA build, and foundation validator (V1–V13).
+
 ## Next Suggested Milestone
 
-1. **v1.1 Milestone 7: Hierarchical Multi-Org Fleet Partitioning & Automated SCIM 2.0 User Provisioning**:
-   - Cross-tenant sub-organizations, depot boundaries, and hierarchical fleet partitioning (`sub_organizations`, `depots`).
-   - Automated SCIM 2.0 user & group synchronization (`/scim/v2/Users`, `/scim/v2/Groups`) for enterprise identity providers (Okta, Azure AD / Microsoft Entra ID).
-   - Granular RBAC scoping by organizational unit and depot assignment.
+1. **v1.1 Milestone 8: Accessibility (WCAG 2.1 AA) Compliance & Multi-Language i18n Localization**:
+   - High-contrast themes, focus management, ARIA landmarks, and screen-reader announcements for real-time telematics alerts.
+   - Multi-language localization (i18n) supporting English and Spanish for driver execution workflows, dispatcher consoles, and critical cold-chain emergency alerts.
+   - Automated accessibility compliance verification testing (axe-core / pa11y) and localization bundle fallback testing.
 
 ## Required Verification & Benchmark Commands
 

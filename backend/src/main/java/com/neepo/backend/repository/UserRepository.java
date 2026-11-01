@@ -22,6 +22,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmailIgnoreCaseAndCompanyId(String email, UUID companyId);
 
+    Optional<User> findByCompanyIdAndScimExternalId(UUID companyId, String scimExternalId);
+
+    long countByCompanyIdAndDepotId(UUID companyId, UUID depotId);
+
+    java.util.List<User> findAllByCompanyIdAndDepotId(UUID companyId, UUID depotId);
+
     @Query("SELECT COUNT(u) FROM User u WHERE u.companyId = :companyId AND u.role = :role AND u.enabled = true AND u.status = 'ACTIVE'")
     long countActiveByCompanyIdAndRole(UUID companyId, UserRole role);
 }

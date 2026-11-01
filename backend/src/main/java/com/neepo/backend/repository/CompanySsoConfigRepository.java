@@ -12,4 +12,5 @@ public interface CompanySsoConfigRepository extends JpaRepository<CompanySsoConf
     Optional<CompanySsoConfig> findByCompanyId(UUID companyId);
     Optional<CompanySsoConfig> findBySsoDomainIgnoreCase(String ssoDomain);
     boolean existsBySsoDomainIgnoreCaseAndCompanyIdNot(String ssoDomain, UUID companyId);
+    Optional<CompanySsoConfig> findByScimTokenHashAndScimEnabledTrue(String scimTokenHash);
 }

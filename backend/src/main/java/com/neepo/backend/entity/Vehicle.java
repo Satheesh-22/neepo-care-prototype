@@ -27,6 +27,9 @@ public class Vehicle {
     @Column(name = "company_id", nullable = false)
     private UUID companyId;
 
+    @Column(name = "depot_id")
+    private UUID depotId;
+
     @Column(name = "registration_number", nullable = false, length = 30)
     private String registrationNumber;
 
@@ -163,6 +166,8 @@ public class Vehicle {
 
     public UUID getId() { return id; }
     public UUID getCompanyId() { return companyId; }
+    public UUID getDepotId() { return depotId; }
+    public void setDepotId(UUID depotId) { this.depotId = depotId; }
     public String getRegistrationNumber() { return registrationNumber; }
     public String getVin() { return vin; }
     public String getMake() { return make; }

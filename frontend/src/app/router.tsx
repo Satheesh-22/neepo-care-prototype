@@ -50,6 +50,7 @@ const DriverProfilePage = lazyWithRetry(() => import("../pages/DriverProfilePage
 const FleetAnalyticsPage = lazyWithRetry(() => import("../pages/FleetAnalyticsPage").then((m) => ({ default: m.FleetAnalyticsPage })));
 const HardwareGatewayPage = lazyWithRetry(() => import("../pages/HardwareGatewayPage").then((m) => ({ default: m.HardwareGatewayPage })));
 const EnterpriseSsoPage = lazyWithRetry(() => import("../pages/EnterpriseSsoPage").then((m) => ({ default: m.EnterpriseSsoPage })));
+const DepotsPage = lazyWithRetry(() => import("../pages/DepotsPage").then((m) => ({ default: m.DepotsPage })));
 
 function LoadingView() {
   return <Stack alignItems="center" py={10}><CircularProgress aria-label="Loading workspace" /></Stack>;
@@ -118,6 +119,16 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={["ADMIN"]}>
             <Deferred><EnterpriseSsoPage /></Deferred>
+          </RoleGuard>
+        )
+      },
+
+      // Fleet Depots & Regional Hubs
+      {
+        path: "/admin/depots",
+        element: (
+          <RoleGuard allowedRoles={["ADMIN", "DISPATCHER"]}>
+            <Deferred><DepotsPage /></Deferred>
           </RoleGuard>
         )
       },

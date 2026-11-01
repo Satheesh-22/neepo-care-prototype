@@ -1,5 +1,6 @@
 import AdminPanelSettingsRounded from "@mui/icons-material/AdminPanelSettingsRounded";
 import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
+import ContentCopyRounded from "@mui/icons-material/ContentCopyRounded";
 import ErrorOutlineRounded from "@mui/icons-material/ErrorOutlineRounded";
 import HistoryRounded from "@mui/icons-material/HistoryRounded";
 import KeyRounded from "@mui/icons-material/KeyRounded";
@@ -23,6 +24,8 @@ import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
@@ -478,6 +481,78 @@ export function EnterpriseSsoPage() {
                   </Grid>
                 </Grid>
               </Box>
+            </CardContent>
+          </Card>
+
+          {/* Automated SCIM 2.0 User Provisioning Card */}
+          <Card variant="outlined" sx={{ borderRadius: 2, mt: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                <Box>
+                  <Typography variant="h6" fontWeight={800}>
+                    Automated SCIM 2.0 User Provisioning
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    RFC 7643 / RFC 7644 user lifecycle synchronization with Okta, Microsoft Entra ID, and PingFederate.
+                  </Typography>
+                </Box>
+                <Chip
+                  label={enabled ? "SCIM READY" : "DISABLED"}
+                  color={enabled ? "success" : "default"}
+                  size="small"
+                  sx={{ fontWeight: 700 }}
+                />
+              </Stack>
+
+              <Stack spacing={2.5} sx={{ mt: 2.5 }}>
+                <TextField
+                  size="small"
+                  label="SCIM 2.0 Base URL"
+                  fullWidth
+                  value={`${window.location.origin}/api/v1/scim/v2`}
+                  InputProps={{
+                    readOnly: true,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/api/v1/scim/v2`)}
+                          title="Copy SCIM Base URL"
+                        >
+                          <ContentCopyRounded fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                  helperText="Configure this endpoint in your Identity Provider SCIM provisioning settings."
+                />
+
+                <Alert severity="info" sx={{ borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight={700}>
+                    SCIM Authentication
+                  </Typography>
+                  <Typography variant="body2">
+                    Use HTTP Header Bearer Token authentication. When generated, configure the Bearer Token in your IdP application settings.
+                  </Typography>
+                </Alert>
+
+                <Stack direction="row" spacing={2} justifyContent="flex-end">
+                  <Button
+                    variant="outlined"
+                    startIcon={<KeyRounded />}
+                    onClick={async () => {
+                      try {
+                        const res = await neepoApi.generateScimToken(token);
+                        alert(`SCIM Token generated: ${res.token}\n\nPlease copy and store this token safely in your IdP. It will not be shown again.`);
+                      } catch (e: unknown) {
+                        alert(e instanceof Error ? e.message : "Failed to generate SCIM token.");
+                      }
+                    }}
+                  >
+                    Generate SCIM Token
+                  </Button>
+                </Stack>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>

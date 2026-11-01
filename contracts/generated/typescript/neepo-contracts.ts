@@ -672,5 +672,74 @@ export interface SsoTestResultResponse {
   readonly testedAt: IsoInstant;
 }
 
+export type DepotStatus = "ACTIVE" | "MAINTENANCE" | "INACTIVE";
+
+export interface DepotResponse {
+  readonly id: UUID;
+  readonly companyId: UUID;
+  readonly code: string;
+  readonly name: string;
+  readonly address: string;
+  readonly city: string;
+  readonly state?: string | null;
+  readonly postalCode?: string | null;
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly capacity: number;
+  readonly status: DepotStatus;
+  readonly contactPhone?: string | null;
+  readonly contactEmail?: string | null;
+  readonly assignedVehiclesCount: number;
+  readonly assignedDriversCount: number;
+  readonly createdAt: IsoInstant;
+  readonly updatedAt: IsoInstant;
+}
+
+export interface CreateDepotRequest {
+  readonly code: string;
+  readonly name: string;
+  readonly address: string;
+  readonly city: string;
+  readonly state?: string | null;
+  readonly postalCode?: string | null;
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly capacity: number;
+  readonly status?: DepotStatus;
+  readonly contactPhone?: string | null;
+  readonly contactEmail?: string | null;
+}
+
+export interface UpdateDepotRequest {
+  readonly code?: string | null;
+  readonly name?: string | null;
+  readonly address?: string | null;
+  readonly city?: string | null;
+  readonly state?: string | null;
+  readonly postalCode?: string | null;
+  readonly latitude?: number | null;
+  readonly longitude?: number | null;
+  readonly capacity?: number | null;
+  readonly status?: DepotStatus;
+  readonly contactPhone?: string | null;
+  readonly contactEmail?: string | null;
+}
+
+export interface ScimStatusResponse {
+  readonly enabled: boolean;
+  readonly tokenPrefix?: string | null;
+  readonly scimBaseUrl: string;
+  readonly provisionedUsersCount: number;
+}
+
+export interface ScimTokenResponse {
+  readonly token: string;
+  readonly prefix: string;
+  readonly scimBaseUrl: string;
+  readonly enabled: boolean;
+  readonly generatedAt: IsoInstant;
+}
+
+
 
 

@@ -11,11 +11,12 @@
 - Authenticated, one-use WebSocket tickets and post-commit telemetry events: implemented
 - Adaptive telemetry policy, offline synchronization and reconnect de-duplication: implemented
 - PostgreSQL/PostGIS, Redis, Spring Boot and Nginx containers: healthy
-- Flyway: twelve immutable ordered migrations (V1–V12), validated against clean ephemeral database and persistent development volume
+- Flyway: thirteen immutable ordered migrations (V1–V13), validated against clean ephemeral database and persistent development volume
 - Cryptographic Audit & Compliance Evidence Exports (v1.1 Milestone 3 - FDA 21 CFR Part 11 & EU GDP Guidelines): implemented (tamper-evident SHA-256 manifests, multi-format export packaging in JSON-LD, CSV, and Printable HTML, verification API with `X-Neepo-Digest`, and interactive Tamper Verifier UI)
 - Fleet Reliability & Cost-Avoidance Analytics (v1.1 Milestone 4 - P2): implemented (materialized snapshot aggregation, Mean Time to Recovery tracking, driver compliance rates, preserved cargo valuation, root-cause distribution, interval trend breakdown, CARE strategy efficiency, RBAC-protected `GET /api/v1/analytics/fleet`, and interactive `FleetAnalyticsPage.tsx` with 7D/30D/90D timeframes)
 - Hardware Gateway Fleet Pilot & Offline Resilience (v1.1 Milestone 5 - P2): implemented (ESP32-S3 edge gateway provisioning, ATECC608A cryptographic signature verification, Winbond 32MB SPI NOR flash circular queue offline buffering, idempotent batch deduplication replay, live Over-the-Air dynamic policy synchronization `GET /api/v1/gateways/{id}/config`, edge heartbeat monitoring, interactive `HardwareGatewayPage.tsx` with live diagnostic simulator, and Flyway V11 migration)
 - Multi-Tenant Enterprise Organization & SSO Integration (v1.1 Milestone 6 - P1): implemented (OIDC / SAML 2.0 identity federation, domain discovery, JIT user provisioning, SSO enforcement blocking password login for enterprise domains, real-time IdP latency testing, tamper-evident SSO audit ledger, interactive `EnterpriseSsoPage.tsx` management console, enterprise login discovery banner, and Flyway V12 migration)
+- Hierarchical Multi-Org Fleet Partitioning & Automated SCIM 2.0 User Provisioning (v1.1 Milestone 7 - P1): implemented (cold-chain depot boundary partitioning, vehicle/driver facility stationing, capacity utilization tracking, RFC 7643 / RFC 7644 SCIM 2.0 user lifecycle endpoints `/api/v1/scim/v2/Users`, SCIM ServiceProviderConfig & Schemas, Bearer token generation & revocation, interactive `DepotsPage.tsx` facility console, and Flyway V13 migration)
 - Release automation, clean-database migration test, and GitHub Actions CI: implemented
 - Production readiness & deployment hardening: audited, benchmarked, and documented
 - Production operations & IaC manifests: implemented (Kubernetes manifests, External Secrets Operator, staging deployment CI/CD, disposable backup/restore drill, Prometheus alert rules, Grafana dashboard, zero-downtime rollback validation suite, hardware gateway bench prototype)
@@ -25,18 +26,19 @@
 
 Verified on 01 November 2026:
 
-- Backend `test`: 184 tests passed, 0 failures, 0 errors, 0 skipped
+- Backend `test`: 196 tests passed, 0 failures, 0 errors, 0 skipped
 - CARE-engine `test`: 117 tests passed, 0 failures, 0 errors, 0 skipped
-- Frontend: ESLint clean (0 warnings), 41 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
+- Frontend: ESLint clean (0 warnings), 45 Vitest unit & integration tests passed, 11 Playwright E2E tests passed (3 smoke + 8 onboarding journeys), production PWA build succeeded
 - High-Resolution Telemetry History & Route Replay (v1.1 P1 Milestone 1): implemented (`GET /api/v1/trips/{tripId}/telemetry/history`, `TelemetryReplayScrubber.tsx`, dynamic Leaflet vehicle tracking, breadcrumb trail polylines, overheating warning badges, and $1\times, 2\times, 5\times$ speed multipliers)
 - Multi-Channel Real-Time Alerting & Webhooks Engine (v1.1 P1 Milestone 2): implemented (`GET/POST /api/v1/notifications/channels`, `DELETE /api/v1/notifications/channels/{channelId}`, `POST /api/v1/notifications/channels/{channelId}/test`, `GET /api/v1/notifications/logs`, `NotificationSettingsModal.tsx`, HMAC-SHA256 signature verification `X-Neepo-Signature`, severity threshold suppression, secret masking, demo mock dispatches, Flyway V8 migration)
 - Cryptographic Audit & Compliance Evidence Exports (v1.1 P1 Milestone 3): implemented (`POST /api/v1/compliance/exports/trip/{tripId}`, `GET /api/v1/compliance/exports`, `GET /api/v1/compliance/exports/{manifestId}`, `POST /api/v1/compliance/exports/{manifestId}/verify`, `ComplianceExportModal.tsx`, multi-format `JSON_LD` linked data, `CSV` archive, `PRINTABLE_HTML` dossier with regulatory badges, SHA-256 tamper-evident digest verification, and Flyway V9 migration)
 - Fleet Reliability & Cost-Avoidance Analytics (v1.1 P2 Milestone 4): implemented (`GET /api/v1/analytics/fleet`, `FleetAnalyticsService`, `FleetAnalyticsRepository`, `FleetAnalyticsSnapshot`, `FleetAnalyticsPage.tsx`, 7D/30D/90D interval toggling, MTTR, driver compliance, cargo cost avoidance, telematics root-cause progress bars, incident progression trend, CARE strategy table, and Flyway V10 migration)
 - Hardware Gateway Fleet Pilot & Offline Resilience (v1.1 P2 Milestone 5): implemented (`GET/POST /api/v1/gateways`, `GET /api/v1/gateways/{id}/config`, `POST /api/v1/gateways/{id}/sync`, `POST /api/v1/gateways/{id}/heartbeat`, `HardwareGatewayService`, `HardwareGatewayRepository`, `GatewaySyncLogRepository`, `HardwareGatewayPage.tsx`, live edge heartbeat simulator, simulated SPI flash offline batch replay with duplicate idempotency, and Flyway V11 migration)
 - Multi-Tenant Enterprise Organization & SSO Integration (v1.1 P1 Milestone 6): implemented (`GET /api/v1/auth/sso/discover`, `POST /api/v1/auth/sso/callback`, `GET/PUT /api/v1/admin/sso`, `GET /api/v1/admin/sso/audit-logs`, `POST /api/v1/admin/sso/test`, `SsoService`, `SsoAuthController`, `SsoAdminController`, `EnterpriseSsoPage.tsx`, OIDC / SAML 2.0 federation, domain discovery, JIT provisioning, password bypass blocking, live IdP latency testing, and Flyway V12 migration)
+- Hierarchical Multi-Org Fleet Partitioning & Automated SCIM 2.0 User Provisioning (v1.1 P1 Milestone 7): implemented (`GET/POST /api/v1/depots`, `PUT/DELETE /api/v1/admin/depots/{id}`, `GET /api/v1/admin/scim/status`, `POST/DELETE /api/v1/admin/scim/token`, RFC 7644 `/api/v1/scim/v2/Users`, ServiceProviderConfig, Schemas, `DepotService`, `ScimService`, `DepotController`, `ScimAdminController`, `ScimV2Controller`, `DepotsPage.tsx`, capacity utilization tracking, stationing, and Flyway V13 migration)
 - Web-page Style & Data Visualization: implemented (Design tokens & theme refinement, Dashboard operations & latency overview with sparklines, Telemetry gauges with thermal & cold-chain zones, interactive Leaflet route & incident map with detour lines, CARE multi-attribute decision comparison & timeline, and Demo Mode presentation controller)
-- Role-based Onboarding & Admin Pages: implemented (`/admin/company`, `/admin/users`, `/admin/drivers`, `/admin/drivers/new`, `/admin/vehicles`, `/admin/vehicles/new`, `/admin/assignments`, `/admin/sso`, `/driver/profile`, `/invite/accept`, `/forbidden`, `/analytics`, `/gateways`)
-- Foundation validator (`scripts/validate-foundation.py`): passed (V1–V12 verified)
+- Role-based Onboarding & Admin Pages: implemented (`/admin/company`, `/admin/users`, `/admin/drivers`, `/admin/drivers/new`, `/admin/vehicles`, `/admin/vehicles/new`, `/admin/assignments`, `/admin/sso`, `/admin/depots`, `/driver/profile`, `/invite/accept`, `/forbidden`, `/analytics`, `/gateways`)
+- Foundation validator (`scripts/validate-foundation.py`): passed (V1–V13 verified)
 - Docker Compose configuration: valid
 - Frontend `/health`: HTTP 200
 - Backend `/actuator/health`: `UP`
@@ -74,6 +76,6 @@ The four Compose services are running for local review:
 
 - Keep `.env` local and ignored; never place its values in reports or logs.
 - Do not delete the working PostgreSQL volume merely to rerun the application.
-- Do not edit applied migrations V1–V9; add a new migration for future schema changes.
+- Do not edit applied migrations V1–V13; add a new migration for future schema changes.
 - Demo credentials are local-development data and must not be used in a deployed environment.
 - Do not connect uncertified hardware to moving vehicles; the software simulator is the primary test source.

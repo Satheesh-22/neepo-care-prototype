@@ -1111,6 +1111,155 @@ paths:
               schema:
                 $ref: '#/components/schemas/SsoTestResultSuccessResponse'
 
+  /depots:
+    get:
+      tags: [Depots]
+      operationId: listDepots
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of depots for current organization
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DepotResponse'
+
+  /depots/{id}:
+    get:
+      tags: [Depots]
+      operationId: getDepot
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Depot details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepotResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/depots:
+    post:
+      tags: [Depots]
+      operationId: createDepot
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDepotRequest'
+      responses:
+        '201':
+          description: Depot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepotResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /admin/depots/{id}:
+    put:
+      tags: [Depots]
+      operationId: updateDepot
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDepotRequest'
+      responses:
+        '200':
+          description: Depot updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepotResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Depots]
+      operationId: deleteDepot
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Depot deleted
+
+  /admin/scim/status:
+    get:
+      tags: [SCIM]
+      operationId: getScimStatus
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Automated SCIM provisioning status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimStatusResponse'
+
+  /admin/scim/token:
+    post:
+      tags: [SCIM]
+      operationId: generateScimToken
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Newly generated SCIM Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimTokenResponse'
+    delete:
+      tags: [SCIM]
+      operationId: revokeScimToken
+      x-implementation-status: implemented
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: SCIM token revoked
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3227,10 +3376,146 @@ components:
       allOf:
         - $ref: '#/components/schemas/SuccessEnvelope'
         - type: object
-          required: [data]
+        - required: [data]
           properties:
             data:
               $ref: '#/components/schemas/SsoTestResultResponse'
+
+    DepotStatus:
+      type: string
+      enum: [ACTIVE, MAINTENANCE, INACTIVE]
+
+    DepotResponse:
+      type: object
+      required: [id, companyId, code, name, address, city, latitude, longitude, capacity, status, assignedVehiclesCount, assignedDriversCount, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        capacity:
+          type: integer
+        status:
+          $ref: '#/components/schemas/DepotStatus'
+        contactPhone:
+          type: string
+        contactEmail:
+          type: string
+        assignedVehiclesCount:
+          type: integer
+        assignedDriversCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDepotRequest:
+      type: object
+      required: [code, name, address, city, latitude, longitude, capacity]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        capacity:
+          type: integer
+        status:
+          $ref: '#/components/schemas/DepotStatus'
+        contactPhone:
+          type: string
+        contactEmail:
+          type: string
+
+    UpdateDepotRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        capacity:
+          type: integer
+        status:
+          $ref: '#/components/schemas/DepotStatus'
+        contactPhone:
+          type: string
+        contactEmail:
+          type: string
+
+    ScimStatusResponse:
+      type: object
+      required: [enabled, scimBaseUrl, provisionedUsersCount]
+      properties:
+        enabled:
+          type: boolean
+        tokenPrefix:
+          type: string
+        scimBaseUrl:
+          type: string
+        provisionedUsersCount:
+          type: integer
+
+    ScimTokenResponse:
+      type: object
+      required: [token, prefix, scimBaseUrl, enabled, generatedAt]
+      properties:
+        token:
+          type: string
+        prefix:
+          type: string
+        scimBaseUrl:
+          type: string
+        enabled:
+          type: boolean
+        generatedAt:
+          type: string
+          format: date-time
+
 
 
 

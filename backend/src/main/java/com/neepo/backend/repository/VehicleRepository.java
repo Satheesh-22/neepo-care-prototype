@@ -14,4 +14,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
     boolean existsByCompanyIdAndRegistrationNumberIgnoreCaseAndIdNot(UUID companyId, String registrationNumber, UUID id);
     boolean existsByCompanyIdAndVinIgnoreCase(UUID companyId, String vin);
     boolean existsByCompanyIdAndVinIgnoreCaseAndIdNot(UUID companyId, String vin, UUID id);
+    long countByCompanyIdAndDepotId(UUID companyId, UUID depotId);
+    List<Vehicle> findAllByCompanyIdAndDepotId(UUID companyId, UUID depotId);
 }
