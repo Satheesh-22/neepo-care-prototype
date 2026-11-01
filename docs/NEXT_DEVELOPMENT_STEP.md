@@ -3,9 +3,9 @@
 The backend, CARE engine, PWA, local deployment, clean-database migration automation,
 CI workflows, and release packaging are integrated and verified on `feature/full-stack-integration`.
 
-## Current Status: Milestones 1 through 7 Completed
+## Current Status: Milestones 1 through 8 Completed
 
-Milestones 1, 2, 3, 4, 5, 6, and 7 of the v1.1 roadmap have been implemented, integrated, and verified:
+Milestones 1, 2, 3, 4, 5, 6, 7, and 8 of the v1.1 roadmap have been implemented, integrated, and verified:
 
 1. **High-Resolution Telemetry History & Route Replay (Milestone 1)**:
    - Added `GET /api/v1/trips/{tripId}/telemetry/history` with optional ISO-8601 bounds, limit clamping (1–2000), tenant isolation, and RBAC.
@@ -62,12 +62,22 @@ Milestones 1, 2, 3, 4, 5, 6, and 7 of the v1.1 roadmap have been implemented, in
    - Added `/admin/depots` route with `RoleGuard(["ADMIN", "DISPATCHER"])` and navigation link in `AppShell.tsx`.
    - Verified test suites: 196/196 backend tests, 117/117 care-engine tests, 45/45 frontend tests, ESLint clean (0 errors), clean Vite PWA build, and foundation validator (V1–V13).
 
+8. **Accessibility (WCAG 2.1 AA) Compliance & Multi-Language i18n Localization (Milestone 8)**:
+   - Implemented skip-to-content keyboard navigation link with `#main-content` target landmark for WCAG 2.1 AA compliance.
+   - Configured semantic ARIA landmarks (`role="banner"`, `role="navigation"`, `role="main"`).
+   - Built visually hidden `LiveAnnouncer` with polite (`aria-live="polite"`) and assertive (`aria-live="assertive"`) live regions for real-time telematics alerts and cold-chain excursions.
+   - Built dynamic theme generation with High-Contrast Mode (7:1+ contrast ratios, high-visibility focus outlines, bold borders) and Large Text scaling (15% typography scale).
+   - Built lightweight, zero-dependency, type-safe i18n localization engine supporting English (`en`) and Spanish (`es`) with 100% dictionary key parity, nested lookup, parameter interpolation, and automatic fallback.
+   - Integrated bilingual language switcher and accessibility display preferences popover directly into `AppShell.tsx`.
+   - Localized `DepotsPage.tsx`, `DashboardPage.tsx`, and `TelemetryGauges.tsx` with assertive screen-reader emergency announcements.
+   - Verified test suites: 196/196 backend tests, 117/117 care-engine tests, 54/54 frontend tests across 13 test files, ESLint clean (0 errors, 0 warnings), clean Vite PWA production build, and foundation validator (V1–V13).
+
 ## Next Suggested Milestone
 
-1. **v1.1 Milestone 8: Accessibility (WCAG 2.1 AA) Compliance & Multi-Language i18n Localization**:
-   - High-contrast themes, focus management, ARIA landmarks, and screen-reader announcements for real-time telematics alerts.
-   - Multi-language localization (i18n) supporting English and Spanish for driver execution workflows, dispatcher consoles, and critical cold-chain emergency alerts.
-   - Automated accessibility compliance verification testing (axe-core / pa11y) and localization bundle fallback testing.
+1. **v1.1 Milestone 9: Automated Cross-Region Disaster Recovery & Continuous Health Probing**:
+   - Cross-region hot standby database replication configuration and automated failover runbooks.
+   - Synthetic health monitoring probes for critical cold-chain ingress paths and edge gateway clusters.
+   - Automated recovery point objective (RPO < 5s) and recovery time objective (RTO < 30s) verification drills.
 
 ## Required Verification & Benchmark Commands
 

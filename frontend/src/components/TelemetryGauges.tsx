@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -5,6 +6,8 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { NetworkState } from "@contracts";
+import { useTranslation } from "../i18n";
+import { useAnnounce } from "../accessibility";
 
 export interface TelemetryGaugesProps {
   engineTemperature: number;
@@ -37,6 +40,17 @@ export function TelemetryGauges({
   const isCargoSafe = cargoTemperature >= 2 && cargoTemperature <= 8;
   const cargoColor = isCargoSafe ? "#10b981" : "#ef4444";
   const cargoStatusText = isCargoSafe ? "Cold-Chain Compliant (2°C – 8°C)" : "Temperature Violation!";
+
+  const { t } = useTranslation();
+  const { announce } = useAnnounce();
+
+  useEffect(() => {
+    if (isEngineCritical) {
+      announce(t("telemetry.overheatingAlert"), "assertive");
+    } else if (!isCargoSafe) {
+      announce(t("telemetry.coldChainBreach"), "assertive");
+    }
+  }, [isEngineCritical, isCargoSafe, t, announce]);
 
   // Adaptive policy interval description
   const policyInterval = isEngineCritical && !safelyParked ? "3s" : safelyParked ? "120s" : "30s";

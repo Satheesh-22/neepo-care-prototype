@@ -41,12 +41,16 @@ import { useMemo, useState } from "react";
 import { neepoApi } from "../api";
 import type { CreateDepotRequest, DepotResponse, DepotStatus, UpdateDepotRequest } from "../api/types";
 import { useAuthStore } from "../auth/authStore";
+import { useTranslation } from "../i18n";
+import { useAnnounce } from "../accessibility";
 
 export const DepotsPage = () => {
   const session = useAuthStore((state) => state.session);
   const token = session?.accessToken ?? "";
   const isAdmin = session?.user.role === "ADMIN";
   const queryClient = useQueryClient();
+  const { t, locale } = useTranslation();
+  const { announce } = useAnnounce();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -82,9 +86,11 @@ export const DepotsPage = () => {
       queryClient.invalidateQueries({ queryKey: ["depots"] });
       setIsDialogOpen(false);
       setFeedback({ type: "success", message: "Depot created successfully." });
+      announce(locale === "es" ? "Instalación creada con éxito" : "Facility created successfully", "polite");
     },
     onError: (err: Error) => {
       setFeedback({ type: "error", message: err.message || "Failed to create depot." });
+      announce(locale === "es" ? "Error al crear instalación" : "Failed to create facility", "assertive");
     }
   });
 
@@ -95,9 +101,11 @@ export const DepotsPage = () => {
       setIsDialogOpen(false);
       setEditingDepot(null);
       setFeedback({ type: "success", message: "Depot updated successfully." });
+      announce(locale === "es" ? "Instalación actualizada con éxito" : "Facility updated successfully", "polite");
     },
     onError: (err: Error) => {
       setFeedback({ type: "error", message: err.message || "Failed to update depot." });
+      announce(locale === "es" ? "Error al actualizar instalación" : "Failed to update facility", "assertive");
     }
   });
 
@@ -106,9 +114,11 @@ export const DepotsPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["depots"] });
       setFeedback({ type: "success", message: "Depot deleted successfully." });
+      announce(locale === "es" ? "Instalación eliminada con éxito" : "Facility deleted successfully", "polite");
     },
     onError: (err: Error) => {
       setFeedback({ type: "error", message: err.message || "Failed to delete depot." });
+      announce(locale === "es" ? "Error al eliminar instalación" : "Failed to delete facility", "assertive");
     }
   });
 
@@ -184,11 +194,11 @@ export const DepotsPage = () => {
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 0.5 }}>
             <WarehouseRounded sx={{ fontSize: 32, color: "primary.main" }} />
             <Typography variant="h4" fontWeight={700}>
-              Fleet Depots & Regional Hubs
+              {t("depots.title")}
             </Typography>
           </Stack>
           <Typography variant="body1" color="text.secondary">
-            Hierarchical fleet partitioning, cold-chain depot boundaries, and capacity utilization.
+            {t("depots.subtitle")}
           </Typography>
         </Box>
         {isAdmin && (
@@ -198,7 +208,7 @@ export const DepotsPage = () => {
             onClick={handleOpenCreate}
             sx={{ px: 3, py: 1.2, borderRadius: 2 }}
           >
-            Add Depot
+            {t("depots.addDepot")}
           </Button>
         )}
       </Box>
@@ -224,7 +234,7 @@ export const DepotsPage = () => {
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  TOTAL DEPOTS
+                  {t("depots.totalDepots").toUpperCase()}
                 </Typography>
                 <Typography variant="h4" fontWeight={700}>
                   {totalDepots}
@@ -242,7 +252,7 @@ export const DepotsPage = () => {
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  ACTIVE FACILITIES
+                  {t("depots.activeFacilities").toUpperCase()}
                 </Typography>
                 <Typography variant="h4" fontWeight={700} color="success.main">
                   {activeFacilities}
@@ -260,10 +270,10 @@ export const DepotsPage = () => {
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  TOTAL CAPACITY
+                  {t("depots.totalCapacity").toUpperCase()}
                 </Typography>
                 <Typography variant="h4" fontWeight={700}>
-                  {totalCapacity} <Typography component="span" variant="body2" color="text.secondary">vehicles</Typography>
+                  {totalCapacity} <Typography component="span" variant="body2" color="text.secondary">{t("depots.vehicleUnit")}</Typography>
                 </Typography>
               </Box>
             </Stack>
@@ -278,10 +288,10 @@ export const DepotsPage = () => {
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  STATIONED FLEET
+                  {t("depots.stationedFleet").toUpperCase()}
                 </Typography>
                 <Typography variant="h4" fontWeight={700}>
-                  {totalStationedVehicles} <Typography component="span" variant="body2" color="text.secondary">vehicles</Typography>
+                  {totalStationedVehicles} <Typography component="span" variant="body2" color="text.secondary">{t("depots.vehicleUnit")}</Typography>
                 </Typography>
               </Box>
             </Stack>
@@ -294,7 +304,7 @@ export const DepotsPage = () => {
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center" justifyContent="space-between">
           <TextField
             size="small"
-            placeholder="Search by code, facility name, or city..."
+            placeholder={t("depots.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{
@@ -477,7 +487,7 @@ export const DepotsPage = () => {
       >
         <form onSubmit={handleSubmit}>
           <DialogTitle sx={{ fontWeight: 700 }}>
-            {editingDepot ? "Edit Facility Depot" : "Register New Facility Depot"}
+            {editingDepot ? t("depots.editTitle") : t("depots.registerTitle")}
           </DialogTitle>
           <DialogContent dividers>
             <Stack spacing={2.5} sx={{ mt: 1 }}>
@@ -611,7 +621,7 @@ export const DepotsPage = () => {
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
             <Button onClick={() => setIsDialogOpen(false)} color="inherit">
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"

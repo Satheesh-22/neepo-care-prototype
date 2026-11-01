@@ -30,12 +30,14 @@ import { MetricCard } from "../components/MetricCard";
 import { NotificationSettingsModal } from "../components/NotificationSettingsModal";
 import { StatusPill } from "../components/StatusPill";
 import { useOfflineQueue } from "../offline/useOfflineQueue";
+import { useTranslation } from "../i18n";
 import { useState } from "react";
 
 export function DashboardPage() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const session = useAuthStore((state) => state.session)!;
   const { pendingCount } = useOfflineQueue();
+  const { t } = useTranslation();
 
   const trip = useQuery({
     queryKey: ["trip", DEMO_TRIP_ID],
@@ -44,13 +46,13 @@ export function DashboardPage() {
 
   const isDriver = session.user.role === "DRIVER";
   const roleMessage = isDriver
-    ? "Your vehicle telemetry is actively monitored by CARE. Review recovery instructions or transmit onboard observations."
+    ? t("dashboard.welcomeDriver")
     : session.user.role === "ADMIN"
-      ? "Fleet operations, policy compliance, and decision transparency engines are running with full constraint validation."
-      : "Active disruption detected in the corridor. CARE has generated deterministic recovery alternatives.";
+      ? t("dashboard.welcomeAdmin")
+      : t("dashboard.welcomeDispatcher");
 
   const workspacePath = isDriver ? `/driver/trips/${DEMO_TRIP_ID}` : `/trips/${DEMO_TRIP_ID}`;
-  const actionButtonText = isDriver ? "Open driver trip" : "Open recovery workspace";
+  const actionButtonText = isDriver ? t("dashboard.viewDriverTrip") : t("dashboard.viewTripWorkspace");
 
   return (
     <Stack spacing={3.5}>
