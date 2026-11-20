@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 K8S_DIR="$PROJECT_ROOT/deploy/k8s"
 OBS_DIR="$PROJECT_ROOT/deploy/observability"
+DR_DIR="$PROJECT_ROOT/deploy/dr"
 
 echo "================================================================================"
 echo "        NEEPO-CARE STAGING KUBERNETES & OBSERVABILITY MANIFEST VALIDATOR        "
@@ -13,7 +14,7 @@ echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "--------------------------------------------------------------------------------"
 
 echo "[1/5] Scanning Kubernetes & Observability manifests..."
-MANIFEST_COUNT=$(find "$K8S_DIR" "$OBS_DIR" -name "*.yaml" | wc -l)
+MANIFEST_COUNT=$(find "$K8S_DIR" "$OBS_DIR" "$DR_DIR" -name "*.yaml" | wc -l)
 echo " - Found $MANIFEST_COUNT manifest files to validate."
 
 echo ""

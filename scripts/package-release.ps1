@@ -1,7 +1,7 @@
 # PowerShell script: Package reproducible, secret-free NEEPO-CARE release artifact
 
 param(
-    [string]$Version = "1.0.0",
+    [string]$Version = "1.1.0",
     [string]$OutputDir = "dist\release"
 )
 
@@ -30,6 +30,7 @@ $itemsToCopy = @(
     "care-engine",
     "contracts",
     "database",
+    "deploy",
     "docker",
     "docs",
     "frontend",

@@ -7,6 +7,7 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptRoot
 $k8sDir = Join-Path $projectRoot "deploy\k8s"
 $observabilityDir = Join-Path $projectRoot "deploy\observability"
+$drDir = Join-Path $projectRoot "deploy\dr"
 
 Write-Host "================================================================================"
 Write-Host "        NEEPO-CARE STAGING KUBERNETES & OBSERVABILITY MANIFEST VALIDATOR        "
@@ -15,8 +16,10 @@ Write-Host "Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')"
 Write-Host "--------------------------------------------------------------------------------"
 
 # Step 1: Scan all YAML manifests
-Write-Host "[1/5] Scanning Kubernetes & Observability manifests..."
-$manifestFiles = Get-ChildItem -Path @($k8sDir, $observabilityDir) -Filter "*.yaml" -Recurse
+Write-Host "[1/5] Scanning Kubernetes, Observability & Disaster Recovery manifests..."
+$manifestDirs = @($k8sDir, $observabilityDir)
+if (Test-Path $drDir) { $manifestDirs += $drDir }
+$manifestFiles = Get-ChildItem -Path $manifestDirs -Filter "*.yaml" -Recurse
 Write-Host " - Found $($manifestFiles.Count) manifest files to validate."
 
 # Step 2: Validate Security Contexts & Pod Standards
@@ -24,7 +27,7 @@ Write-Host "`n[2/5] Validating Pod Security Standards & Non-Root Execution..."
 $securityPassed = 0
 foreach ($file in $manifestFiles) {
     $raw = Get-Content $file.FullName -Raw
-    if ($raw -match '(?m)^kind:\s*Deployment\s*$') {
+    if ($raw -match '(?m)^kind:\s*(Deployment|StatefulSet)\s*$') {
         if ($raw -match 'runAsNonRoot:\s*true' -and $raw -match 'allowPrivilegeEscalation:\s*false') {
             $securityPassed++
             Write-Host " - [PASS] $($file.Name): runAsNonRoot=true, allowPrivilegeEscalation=false"
@@ -40,7 +43,7 @@ Write-Host "`n[3/5] Validating Liveness/Readiness Probes and CPU/Memory Limits..
 $probePassed = 0
 foreach ($file in $manifestFiles) {
     $raw = Get-Content $file.FullName -Raw
-    if ($raw -match '(?m)^kind:\s*Deployment\s*$') {
+    if ($raw -match '(?m)^kind:\s*(Deployment|StatefulSet)\s*$') {
         $hasLiveness = $raw -match 'livenessProbe:'
         $hasReadiness = $raw -match 'readinessProbe:'
         $hasRequests = $raw -match 'requests:'

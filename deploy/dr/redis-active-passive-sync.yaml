@@ -1,0 +1,99 @@
+# Redis Active-Passive Cross-Region Replication & Sentinel Failover
+# Multi-Region Deployment: Primary Cache & Read-Through Hot Replica
+# SLA Target: RPO < 1 second, RTO < 10 seconds
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-dr-config
+  namespace: neepo-staging
+  labels:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: cache-dr
+data:
+  redis-replica.conf: |
+    replicaof redis-primary.neepo-staging.svc.cluster.local 6379
+    replica-read-only yes
+    replica-serve-stale-data yes
+    tcp-keepalive 60
+    timeout 0
+    appendonly yes
+    appendfsync everysec
+
+  sentinel.conf: |
+    sentinel monitor mymaster redis-primary.neepo-staging.svc.cluster.local 6379 2
+    sentinel down-after-milliseconds mymaster 5000
+    sentinel failover-timeout mymaster 15000
+    sentinel parallel-syncs mymaster 1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-standby-replica
+  namespace: neepo-staging
+  labels:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: cache-standby
+    neepo.care/region: secondary-region
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: neepo-care
+      app.kubernetes.io/component: cache-standby
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: neepo-care
+        app.kubernetes.io/component: cache-standby
+        neepo.care/region: secondary-region
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: redis
+          image: redis:7.4-alpine
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - redis-server
+            - /etc/redis/redis-replica.conf
+          ports:
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/redis
+      volumes:
+        - name: config
+          configMap:
+            name: redis-dr-config

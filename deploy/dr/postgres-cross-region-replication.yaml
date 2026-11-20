@@ -1,0 +1,259 @@
+# PostgreSQL Cross-Region Streaming Replication Topology
+# Multi-Region Deployment: Primary (us-east-1) & Hot-Standby (us-west-2)
+# SLA Target: RPO < 5 seconds, RTO < 30 seconds
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-replication-config
+  namespace: neepo-staging
+  labels:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: database-dr
+data:
+  postgresql.conf.replication: |
+    # Streaming Replication Configuration
+    wal_level = replica
+    max_wal_senders = 10
+    max_replication_slots = 10
+    wal_keep_size = 1024MB
+    hot_standby = on
+    hot_standby_feedback = on
+    wal_receiver_timeout = 60s
+    archive_mode = on
+    archive_command = 'cp %p /var/lib/postgresql/wal_archive/%f'
+    archive_timeout = 60s
+
+  primary-setup.sql: |
+    -- Create replication user with dedicated credentials
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'replicator') THEN
+        CREATE ROLE replicator WITH REPLICATION LOGIN ENCRYPTED PASSWORD 'replicator_dr_secret_change_in_vault';
+      END IF;
+    END
+    $$;
+    -- Create physical replication slot for cross-region standby
+    SELECT pg_create_physical_replication_slot('standby_region_slot')
+    WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = 'standby_region_slot');
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-primary-repl
+  namespace: neepo-staging
+  labels:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: database-primary
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  selector:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: database
+    neepo.care/replication-role: primary
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-standby-repl
+  namespace: neepo-staging
+  labels:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: database-standby
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  selector:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: database
+    neepo.care/replication-role: standby
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-primary-region
+  namespace: neepo-staging
+  labels:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: database-primary
+    neepo.care/region: primary-region
+spec:
+  serviceName: postgres-primary-repl
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: neepo-care
+      app.kubernetes.io/component: database
+      neepo.care/replication-role: primary
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: neepo-care
+        app.kubernetes.io/component: database
+        neepo.care/replication-role: primary
+        neepo.care/region: primary-region
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: postgis/postgis:17-3.5
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: POSTGRES_DB
+              value: "neepo_care"
+            - name: POSTGRES_USER
+              value: "neepo_user"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neepo-secrets
+                  key: database-password
+          ports:
+            - name: postgres
+              containerPort: 5432
+          livenessProbe:
+            exec:
+              command: ["psql", "-U", "neepo_user", "-d", "neepo_care", "-c", "SELECT 1;"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command: ["psql", "-U", "neepo_user", "-d", "neepo_care", "-c", "SELECT 1;"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+            - name: repl-config
+              mountPath: /etc/postgresql/custom
+      volumes:
+        - name: repl-config
+          configMap:
+            name: postgres-replication-config
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-standby-region
+  namespace: neepo-staging
+  labels:
+    app.kubernetes.io/name: neepo-care
+    app.kubernetes.io/component: database-standby
+    neepo.care/region: secondary-region
+spec:
+  serviceName: postgres-standby-repl
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: neepo-care
+      app.kubernetes.io/component: database
+      neepo.care/replication-role: standby
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: neepo-care
+        app.kubernetes.io/component: database
+        neepo.care/replication-role: standby
+        neepo.care/region: secondary-region
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: postgis/postgis:17-3.5
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: POSTGRES_DB
+              value: "neepo_care"
+            - name: POSTGRES_USER
+              value: "neepo_user"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neepo-secrets
+                  key: database-password
+            - name: PGPRIMARYHOST
+              value: "postgres-primary-repl.neepo.internal"
+          ports:
+            - name: postgres
+              containerPort: 5432
+          livenessProbe:
+            exec:
+              command: ["psql", "-U", "neepo_user", "-d", "neepo_care", "-c", "SELECT pg_is_in_recovery();"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command: ["psql", "-U", "neepo_user", "-d", "neepo_care", "-c", "SELECT pg_is_in_recovery();"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          volumeMounts:
+            - name: pgdata-standby
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata-standby
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi

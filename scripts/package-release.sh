@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-VERSION="${1:-1.0.0}"
+VERSION="${1:-1.1.0}"
 OUTPUT_DIR="${2:-dist/release}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,6 +24,7 @@ ITEMS=(
     "care-engine"
     "contracts"
     "database"
+    "deploy"
     "docker"
     "docs"
     "frontend"

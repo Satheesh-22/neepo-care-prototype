@@ -17,7 +17,13 @@ The end-to-end local application is implemented on `feature/full-stack-integrati
 - High-Resolution Telemetry History & Interactive Route Replay (v1.1 Milestone 1) with Leaflet scrubber ($1\times, 2\times, 5\times$)
 - Multi-Channel Real-Time Alerting & Webhooks Engine (v1.1 Milestone 2) with HMAC-SHA256 signatures (`X-Neepo-Signature`) and delivery audit logs
 - Cryptographic Audit & Compliance Evidence Exports (v1.1 Milestone 3 - FDA 21 CFR Part 11 & EU GDP Guidelines) with tamper-evident SHA-256 manifests, multi-format export packaging (`JSON_LD`, `CSV`, `PRINTABLE_HTML`), bit-level verification API (`X-Neepo-Digest`), and interactive Tamper Verifier UI
-- PostgreSQL 17 with PostGIS and nine ordered Flyway migrations (V1–V9)
+- Fleet Reliability & Cost-Avoidance Analytics (v1.1 Milestone 4) with MTTR tracking, driver compliance, cargo preservation valuation, and 7D/30D/90D snapshots
+- Hardware Gateway Fleet Pilot & Offline Resilience (v1.1 Milestone 5) with ESP32-S3 edge gateway provisioning, ATECC608A cryptographic signature verification, Winbond 32MB SPI NOR flash circular queue offline buffering, and dynamic OTA policy synchronization
+- Multi-Tenant Enterprise Organization & SSO Integration (v1.1 Milestone 6) with OIDC / SAML 2.0 federation, domain discovery, JIT provisioning, password bypass blocking, and live IdP latency diagnostics
+- Hierarchical Multi-Org Fleet Partitioning & Automated SCIM 2.0 User Provisioning (v1.1 Milestone 7) with cold-chain depot partitioning, facility stationing, capacity tracking, and RFC 7643/7644 user lifecycle synchronization
+- Accessibility (WCAG 2.1 AA) Compliance & Multi-Language i18n Localization (v1.1 Milestone 8) with skip-to-content navigation, ARIA landmarks, polite & assertive LiveAnnouncers, high-contrast theme, large text scaling, and English/Spanish dictionaries
+- Automated Cross-Region Disaster Recovery & Continuous Health Probing (v1.1 Milestone 9) with PostgreSQL streaming replication, Redis active-passive sync, Geo-DNS traffic failover, continuous synthetic health probe suite, and automated RPO < 5s / RTO < 30s drills
+- PostgreSQL 17 with PostGIS and thirteen ordered Flyway migrations (V1–V13)
 - Redis-backed local service boundary
 - React, TypeScript and Vite PWA with Administrator, Dispatcher and Driver workflows
 - Adaptive telemetry policy, offline telemetry queue and explicit synchronization
