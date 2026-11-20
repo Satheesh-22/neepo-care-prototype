@@ -72,3 +72,4 @@ echo "  Data Loss:   0 records     | Data Loss:   0 records   -> [PASS]"
 echo "  Write Test:  SUCCESS       | Promoted DB: READ-WRITE  -> [PASS]"
 echo "================================================================================"
 echo ">> DRILL COMPLETED SUCCESSFULLY: DISASTER RECOVERY READINESS CERTIFIED <<"
+
